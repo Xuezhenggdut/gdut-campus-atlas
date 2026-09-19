@@ -33,10 +33,12 @@ test('gym and tennis courts are separated by a continuous campus road',()=>{
  assert.ok(road);
  const points=road.points.map(toWorld);
  assert.ok(points.length>=5);
- assert.ok(points[0][1]<-95&&points.at(-1)![1]>=139);
+ assert.ok(points[0][1]<-65&&points.at(-1)![1]>=139);
  const tennis=buildings.find(b=>b.id==='b-tennis')!,gym=buildings.find(b=>b.id==='b-gym')!;
  const tx=toWorld(tennis.position)[0],gx=toWorld(gym.position)[0],rx=points[2][0];
  assert.ok(tx<rx&&rx<gx,'road must run between tennis courts and gym');
  const south=roads.find(r=>r.name==='知行大道（南1门段）')!.points.map(toWorld);
  assert.ok(south.some(p=>Math.abs(p[1]-points.at(-1)![1])<1));
+ const north=roads.find(r=>r.name==='环教北路')!.points.map(toWorld);
+ assert.ok(north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<1));
 });

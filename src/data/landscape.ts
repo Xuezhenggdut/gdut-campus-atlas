@@ -87,9 +87,11 @@ export const roads:typeof roadGuides=[...(routeData as typeof roadGuides).filter
  route('南门内外道路连接段',14,[[335,367],[335,470]]),
  route('知行大道',12,[[25,45],[335,45],[435,45],[435,18],[559,18]]),
  route('知行大道（南1门段）',12,[[-360,130.8],[-300,140],[-200,140],[-100,140],[-35,140]]),
- // Supplied Amap crop: a continuous north-south campus road runs between
- // the tennis courts and gym, joining the middle ring to the South Gate 1 road.
- route('体育馆—网球场连接路',9,[[-260,-101],[-260,-54],[-260,18],[-260,82],[-260,140]]),
+ // Supplied Amap crop: 环教北路 is the internal campus street running
+ // parallel to (and south of) the public 大学城中环西路.
+ route('环教北路',10,[[-360,-78],[-310,-78],[-260,-76],[-200,-76],[-130,-76],[-60,-76],[25,-76],[97,-76],[190,-76],[280,-76],[335,-76]]),
+ // The gym/tennis connector meets 环教北路, not the external middle ring.
+ route('体育馆—网球场连接路',9,[[-260,-76],[-260,-54],[-260,18],[-260,82],[-260,140]]),
  route('求是路',9,[[397,45],[397,278]]),
  route('研学路',10,[[495,18],[495,350]]),
  ...[110,168,225,278].map(z=>route('科研楼组团横向道路',8,[[397,z+researchRowOffset],[495,z+researchRowOffset],[590,z+researchRowOffset]])),

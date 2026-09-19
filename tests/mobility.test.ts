@@ -4,9 +4,9 @@ import * as T from 'three';
 import {CampusMobility,mobilityActors,mobilityRoute,routePose} from '../src/scene/campusMobility';
 import {disposeTree} from '../src/scene/geometry';
 
-test('motor traffic stays on the outer ring; campus population primarily cycles',()=>{
+test('motor traffic stays on public ring roads; campus population primarily cycles',()=>{
  const {cars,bikes,walkers}=mobilityActors();assert(cars.length>0&&walkers.length>0&&bikes.length>walkers.length);
- assert(cars.every(a=>a.route.name==='大学城外环西路'));assert([...bikes,...walkers].every(a=>a.route.name!=='大学城外环西路'));
+ assert(cars.every(a=>['大学城外环西路','大学城中环西路'].includes(a.route.name)));assert([...bikes,...walkers].every(a=>!['大学城外环西路','大学城中环西路'].includes(a.route.name)));
  for(const a of [...cars,...bikes,...walkers]){assert(a.route.length>0);for(let t=0;t<100;t++){const p=routePose(a.route,a.offset+t*a.speed*a.direction,a.direction,a.lane);assert([p.x,p.z,p.yaw,p.scale].every(Number.isFinite));assert(p.scale>=0&&p.scale<=1);}}
 });
 
