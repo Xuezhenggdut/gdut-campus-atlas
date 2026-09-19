@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import {buildings,places,toWorld} from '../src/data/campus';
+import {roads,lakePolygons,lakeIsland,inside} from '../src/data/landscape';
+const solid=buildings.filter(b=>b.height>4&&b.kind!=='gate'&&places.find(p=>p.id===b.placeIds[0])?.status==='built');
+function corners(b:typeof buildings[number]){const [x,z]=toWorld(b.position),c=Math.cos(b.rotation),s=Math.sin(b.rotation);return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([u,v])=>[x+u*b.width/2*c+v*b.depth/2*s,z-u*b.width/2*s+v*b.depth/2*c]);}
+const overlaps=[];for(let i=0;i<solid.length;i++)for(let j=i+1;j<solid.length;j++){const a=solid[i],b=solid[j],aa=corners(a),bb=corners(b);const axes=[a.rotation,b.rotation].flatMap(r=>[[Math.cos(r),-Math.sin(r)],[Math.sin(r),Math.cos(r)]]);const amounts=axes.map(([x,z])=>{const p=aa.map(v=>v[0]*x+v[1]*z),q=bb.map(v=>v[0]*x+v[1]*z);return Math.min(Math.max(...p),Math.max(...q))-Math.max(Math.min(...p),Math.min(...q));});if(amounts.every(v=>v>1))overlaps.push({a:a.id,b:b.id,overlap:+Math.min(...amounts).toFixed(1)});}
+const waterSupportedIds=['b-admin','b-comprehensive'];
+const waterSupported=solid.filter(b=>waterSupportedIds.includes(b.id)&&lakePolygons.some(poly=>inside(b.position,poly))).map(b=>b.id);
+const wet=solid.filter(b=>!waterSupportedIds.includes(b.id)).filter(b=>lakePolygons.some(poly=>inside(b.position,poly))&&!inside(b.position,lakeIsland)).map(b=>b.id);
+const roadCrossings=[];for(const b of solid){const [x,z]=toWorld(b.position),c=Math.cos(b.rotation),s=Math.sin(b.rotation);for(let ri=0;ri<roads.length;ri++){const r=roads[ri];let cross=false;for(let i=1;i<r.points.length;i++){const a=toWorld(r.points[i-1]),d=toWorld(r.points[i]);const n=Math.ceil(Math.hypot(d[0]-a[0],d[1]-a[1])/3);for(let k=0;k<=n;k++){const dx=a[0]+(d[0]-a[0])*k/n-x,dz=a[1]+(d[1]-a[1])*k/n-z;if(Math.abs(dx*c-dz*s)<b.width/2+2&&Math.abs(dx*s+dz*c)<b.depth/2+2){cross=true;break;}}if(cross)break;}if(cross)roadCrossings.push({id:b.id,road:ri,name:r.name??'内部道路'});}}
+const report={note:'地面矩形主体碰撞筛查；不包括台阶、连廊与外挑屋檐。道路检查中心线加2单位。',overlaps,wet,waterSupported,roadCrossings};fs.writeFileSync('output/layout-audit.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));

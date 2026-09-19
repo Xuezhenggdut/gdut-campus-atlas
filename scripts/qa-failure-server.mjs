@@ -1,0 +1,3 @@
+import http from 'node:http';import fs from 'node:fs';import path from 'node:path';
+const dist=path.resolve(import.meta.dirname,'../dist');
+http.createServer((req,res)=>{const u=new URL(req.url,'http://127.0.0.1');if(u.pathname.startsWith('/assets/models-')){res.writeHead(503);res.end('Intentional QA failure');return;}const p=path.resolve(dist,'.'+(u.pathname==='/'?'/index.html':u.pathname));if(!p.startsWith(dist+path.sep)||!fs.existsSync(p)){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',p.endsWith('.js')?'text/javascript':p.endsWith('.css')?'text/css':p.endsWith('.svg')?'image/svg+xml':'text/html');fs.createReadStream(p).pipe(res);}).listen(4176,'127.0.0.1',()=>console.log('Failure fixture on 4176'));

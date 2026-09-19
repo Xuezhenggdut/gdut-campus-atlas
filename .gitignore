@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.runtime/
+research/
+output/
+models/
+*.log
+__pycache__/
+*.py[cod]
+*.zip
+.wrangler/
+.env
+.env.*
+!.env.example
