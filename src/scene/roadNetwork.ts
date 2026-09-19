@@ -12,6 +12,20 @@ export function roadElevation(name:string|undefined,x:number){
  if(x>126)return .4+(175-x)/49*7.1;
  return 7.5;
 }
+function academicEastJunction(parts:Parts){
+ const x=97,z=-76,blue='#1a9ac4',mark='#f3f0df',yellow='#d6ad43';
+ // The supplied aerial shows blue cycle-priority aprons on all four corners.
+ for(const sx of [-1,1])for(const sz of [-1,1]){
+  parts.box(7.2,.035,5.2,x+sx*8.0,.47,z+sz*6.8,blue);
+  parts.box(3.8,.04,1.1,x+sx*11.6,.49,z+sz*6.8,blue);
+ }
+ // Four zebra crossings sit just outside the turning area.
+ for(const sz of [-1,1])for(let i=-4;i<=4;i++)parts.box(1.05,.04,3.9,x+i*1.55,.5,z+sz*10.2,mark);
+ for(const sx of [-1,1])for(let i=-4;i<=4;i++)parts.box(3.9,.04,1.05,x+sx*11.3,.5,z+i*1.45,mark);
+ // Short dashed yellow guides make the campus junction legible from above.
+ for(const sz of [-1,1])for(let i=0;i<3;i++)parts.box(.18,.045,2.7,x,.51,z+sz*(14+i*4),yellow);
+ for(const sx of [-1,1])for(let i=0;i<3;i++)parts.box(2.7,.045,.18,x+sx*(15+i*4),.51,z,yellow);
+}
 export function makeRoadNetwork(){
  const group=new T.Group(),parts=new Parts();
  for(const road of roads){
@@ -44,5 +58,6 @@ export function makeRoadNetwork(){
    for(const x of [67,128])for(const z of [-103,-83])parts.box(1.4,6.3,1.4,x,3.15,z,'#b7bdb4');
   }
  }
+ academicEastJunction(parts);
  group.add(parts.finish());group.name='roads-with-GDUT-overpass';return group;
 }

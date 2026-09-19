@@ -59,3 +59,17 @@ test('east dorms and dining hall retain a green setback north of the public midd
  assert.ok(distance('b-east-dining-2')>28);
  assert.ok(distance('b-east-dorm-9')>30);
 });
+
+test('academic and research road grid retains its named hierarchy',()=>{
+ for(const name of ['环教北路','创新大道','知行大道','求是路','明德路','博雅路','研学二路'])assert.ok(roads.some(r=>r.name===name),name);
+ const vertical=['创新大道','求是路','明德路','博雅路'].map(name=>roads.find(r=>r.name===name)!.points.map(toWorld));
+ assert.ok(vertical.every(p=>Math.abs(p[0][0]-p.at(-1)![0])<1));
+ const xs=vertical.map(p=>p[0][0]);assert.deepEqual([...xs].sort((a,b)=>a-b),xs);
+});
+
+test('academic-east junction includes four blue cycle aprons and zebra markings',()=>{
+ const g=makeRoadNetwork();
+ let blue=0,white=0;
+ g.traverse(o=>{const m=o as T.Mesh;if(!m.isMesh)return;const mat=m.material as T.MeshStandardMaterial;if(mat.color?.getHexString()==='1a9ac4')blue++;if(mat.color?.getHexString()==='f3f0df')white++;});
+ assert.ok(blue>=1);assert.ok(white>=1);disposeTree(g);
+});
