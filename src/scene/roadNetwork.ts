@@ -70,7 +70,7 @@ export function makeRoadNetwork(){
   }
  }
  academicEastJunction(parts);
- signalizedJunction(parts,-300,-82);
+ signalizedJunction(parts,-270,-82);
  signalizedJunction(parts,-220,-92);
  group.add(parts.finish());group.name='roads-with-GDUT-overpass';return group;
 }
