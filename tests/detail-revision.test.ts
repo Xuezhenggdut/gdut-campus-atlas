@@ -40,7 +40,7 @@ test('gym and tennis courts are separated by a continuous campus road',()=>{
  const south=roads.find(r=>r.name==='知行大道（南1门段）')!.points.map(toWorld);
  assert.ok(south.some(p=>Math.abs(p[1]-points.at(-1)![1])<1));
  const north=roads.find(r=>r.name==='环教北路')!.points.map(toWorld);
- assert.ok(north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<1));
+ assert.ok(!north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<1),'no gate: connector must not be extended into the northern road');
 });
 
 test('east dorms and dining hall retain a green setback north of the public middle ring',()=>{
@@ -90,4 +90,20 @@ test('west third dining hall retains a broad setback from the academic northwest
  const a=toWorld(dining.position),b=toWorld(gate.position);
  assert.ok(Math.hypot(a[0]-b[0],a[1]-b[1])>80);
  assert.ok(a[1]<b[1]-60);
+});
+
+test('internal road surfaces stop clear of public ring roads away from gates',()=>{
+ const segmentDistance=(a:[number,number],b:[number,number],c:[number,number],d:[number,number])=>{
+  const ux=b[0]-a[0],uz=b[1]-a[1],vx=d[0]-c[0],vz=d[1]-c[1],wx=a[0]-c[0],wz=a[1]-c[1];
+  const A=ux*ux+uz*uz,B=ux*vx+uz*vz,C=vx*vx+vz*vz,D=ux*wx+uz*wz,E=vx*wx+vz*wz,den=A*C-B*B;
+  let s=den?Math.max(0,Math.min(1,(B*E-C*D)/den)):0,t=Math.max(0,Math.min(1,(B*s+E)/(C||1)));
+  s=Math.max(0,Math.min(1,(B*t-D)/(A||1)));
+  return Math.hypot(a[0]+s*ux-c[0]-t*vx,a[1]+s*uz-c[1]-t*vz);
+ };
+ const publicRoads=roads.filter(r=>r.name==='大学城中环西路'||r.name==='大学城外环西路');
+ for(const name of ['环教北路','体育馆—网球场连接路','东侧环教路']){
+  const road=roads.find(r=>r.name===name)!,a=road.points.map(toWorld);let gap=Infinity;
+  for(const outer of publicRoads){const b=outer.points.map(toWorld);for(let i=0;i<a.length-1;i++)for(let j=0;j<b.length-1;j++)gap=Math.min(gap,segmentDistance(a[i],a[i+1],b[j],b[j+1]));}
+  assert.ok(gap>(road.width+25)/2+2,`${name}: ${gap}`);
+ }
 });
