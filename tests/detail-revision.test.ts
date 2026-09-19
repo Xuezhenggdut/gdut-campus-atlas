@@ -29,7 +29,8 @@ test('Tiaozhan Road passes under Guangong bridge while deleted west connections 
 });
 test('Zhixing west extension joins south-one gate and the football-side ring road',()=>{
  const road=roads.find(r=>r.name==='知行大道（南1门段）')!,p=road.points.map(toWorld),gate=toWorld(buildings.find(b=>b.id==='b-south-one-gate')!.position);
- assert(Math.hypot(p[0][0]-gate[0],p[0][1]-gate[1])<.01);
+ assert(gate[0]>p[0][0]+30);
+ const t=(gate[0]-p[0][0])/(p[1][0]-p[0][0]);assert(Math.abs(gate[1]-(p[0][1]+t*(p[1][1]-p[0][1])))<.01);
  const end=p.at(-1)!;assert(Math.abs(end[0]+35)<.01);assert(end[1]>=115&&end[1]<=236);
 });
 

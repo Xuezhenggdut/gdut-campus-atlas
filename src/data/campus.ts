@@ -50,7 +50,7 @@ for(let i=1;i<=6;i++)add({id:`teaching-${i}`,name:`教学${['一','二','三','�
 for(let i=1;i<=4;i++)add({id:`engineering-${i}`,name:`工学${['一','二','三','四'][i-1]}号馆`,aliases:[`工${i}`,`工学${i}号馆`],x:[801,866,907,942][i-1],y:[1073,1028,993,958][i-1],w:73,d:32,h:28,kind:'engineering',source:'engineering',landmark:i===1,color:i<3?'#c5d4d6':'#dca18b'});
 for(let i=1;i<=4;i++)add({id:`lab-${i}`,name:`实验${['一','二','三','四'][i-1]}号楼`,aliases:[`实验${i}号楼`,`实${i}`],x:[970,1009,1051,1088][i-1],y:[1056,1025,994,964][i-1],w:66,d:25,h:22,kind:'lab',source:'engineering',color:'#c8d6c0'});
 add({id:'science',name:'理学馆',x:862,y:1142,w:79,d:34,h:26,kind:'engineering',color:'#d6a09a',source:'engineering'});
-add({id:'admin',name:'行政楼',x:630,y:1060,w:76,d:29,h:26,kind:'office',cat:'service',color:'#d5e1da',source:'gate'});
+add({id:'admin',landmark:true,name:'行政楼',x:630,y:1060,w:76,d:29,h:26,kind:'office',cat:'service',color:'#d5e1da',source:'gate'});
 add({id:'comprehensive',name:'综合楼',x:661,y:1020,w:71,d:29,h:26,kind:'office',cat:'service',color:'#d5e1da',source:'gate'});
 add({id:'conference',name:'会议中心',x:751,y:1097,w:62,d:51,h:20,kind:'culture',cat:'service'});
 add({id:'structure-lab',name:'结构实验楼',x:1120,y:1091,w:48,d:40,h:27,kind:'lab',color:'#d5a165'});
@@ -131,10 +131,10 @@ for(const [id,w,d,h] of [['innovation-a',43,32,27],['truth-a',62,23.4,27],['trut
  const b=buildings.find(b=>b.id==='b-'+id)!;Object.assign(b,{width:w,depth:d,height:h,floors:id.startsWith('virtue')?6:7,footprint:[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]]});
 }
 for(const [id,x,z] of [['innovation-a',354,-114],['truth-a',437,-108],['truth-b',425,-155]] as const){const b=buildings.find(b=>b.id==='b-'+id)!;b.position=unprojectMap([x,z]);places.find(p=>p.id===id)!.position=b.position;}
-const southOne=unprojectMap([-360,130.8]);
-add({id:'south-one-gate',name:'南1门',aliases:['南一门'],x:southOne[0],y:southOne[1],w:16,d:5,h:4,kind:'gate',cat:'service',source:'amap-20260919',description:'知行大道西端出入口。按用户提供高德地图补充道路连接；入口造型、位置和尺寸为示意。'});
+const southOne=unprojectMap([-325,136.1666666667]);
+add({id:'south-one-gate',name:'南1门',aliases:['南一门'],x:southOne[0],y:southOne[1],w:16,d:5,h:4,rotation:1.41865,kind:'gate',cat:'service',source:'amap-20260919',description:'知行大道西端出入口。按用户提供高德地图补充道路连接；入口造型、位置和尺寸为示意。'});
 add({id:'innovation-stone',name:'工大创谷景石',aliases:['工大创谷','创谷石'],x:valley[0],y:valley[1],w:29,d:9,h:8,kind:'plaza',cat:'landscape',description:'教学五号楼与三号楼前、图书馆北侧的工大创谷景石。根据用户提供的官方地图局部补充；石体和刻字为示意复原。'});
-export const tourIds=['library','south-gate','gym','culture','engineering-1','teaching-1','east-dining-1','west-dining-3'];
+export const tourIds=['library','south-gate','admin','gym','culture','engineering-1','teaching-1','east-dining-1','west-dining-3'];
 export const sceneConfig={coordinateSystem:'official-illustration-oblique-corrected',projection:mapProjection,mapToWorldMatrix,north:'negative-Z',unit:'schematic',tourIds,defaultTarget:toWorld([651,650])};
 export function normalizeQuery(q:string){const digits:Record<string,number>={'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};return q.trim().toLowerCase().replace(/[\s号栋楼]/g,'').replace(/[零一二三四五六七八九十]+/g,n=>{if(n.includes('十')){const [a,b]=n.split('十');return String((a?digits[a]:1)*10+(b?digits[b]:0));}return [...n].map(c=>digits[c]).join('');});}
 export function findPlaces(q:string,area:Area|'all'='all',category:Category|'all'='all',planned=false){const query=normalizeQuery(q);return places.filter(p=>(planned||p.status==='built')&&(area==='all'||p.area===area)&&(category==='all'||p.category===category)).map(p=>{const names=[p.name,...p.aliases].map(normalizeQuery);return {p,score:!query?0:names.includes(query)?3:names.some(n=>n.startsWith(query))?2:names.some(n=>n.includes(query))?1:-1};}).filter(x=>x.score>=0).sort((a,b)=>b.score-a.score||Number(!!b.p.landmark)-Number(!!a.p.landmark)).map(x=>x.p);}
