@@ -45,7 +45,8 @@ test('gym and tennis courts are separated by a continuous campus road',()=>{
  const south=roads.find(r=>r.name==='知行大道（南1门段）')!.points.map(toWorld);
  assert.ok(south.some(p=>Math.abs(p[1]-points.at(-1)![1])<1));
  const north=roads.find(r=>r.name==='环教北路')!.points.map(toWorld);
- assert.ok(!north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<1),'no gate: connector must not be extended into the northern road');
+ assert.ok(north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<.01),'campus connector joins restored Huanjiao North Road');
+ assert.ok(north.some(p=>Math.abs(p[0]-97)<.01),'north road continues to Tiaozhan Road');
 });
 
 test('east dorms and dining hall retain a green setback north of the public middle ring',()=>{

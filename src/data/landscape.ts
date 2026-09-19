@@ -97,7 +97,7 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  route('知行大道（南1门段）',12,[[-360,130.8],[-300,140],[-200,140],[-100,140],[-35,140]]),
  // Supplied Amap crop: 环教北路 is the internal campus street running
  // parallel to (and south of) the public 大学城中环西路.
- route('环教北路',10,[[97,-50],[97,-29],[190,-29],[280,-29],[335,-29]]),
+ route('环教北路',10,[[-260,-59.08235294117654],[-200,-66],[-130,-66],[-60,-66],[40,-66],[97,-50],[97,-29],[190,-29],[280,-29],[335,-29]]),
  route('教学区—东区北联络路',10,[[25,-50],[97,-50],[140,-50]]),
  // The gym/tennis connector meets 环教北路, not the external middle ring.
  route('体育馆—网球场连接路',9,[[-249,-156],[-255,-118],[-260,-66],[-260,18],[-260,50],[-260,82],[-260,140]]),
