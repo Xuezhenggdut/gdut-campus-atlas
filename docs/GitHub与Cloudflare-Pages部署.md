@@ -1,33 +1,31 @@
 # GitHub 与 Cloudflare Pages 部署
 
-这个项目是 Vite 静态网页，源码可放在 GitHub，正式网页由 Cloudflare Pages 免费构建和托管，不占用 GitHub Pages。
+这个项目是 Vite 静态网页，源码公开托管在 GitHub，正式网页使用 Cloudflare 最新的静态资源 Workers 部署方式（Cloudflare Pages 的后续方案），不占用 GitHub Pages。
 
 ## GitHub
 
+公开仓库：https://github.com/Xuezhenggdut/gdut-campus-atlas
+
 本地仓库的默认分支为 `main`。生成目录、离线 GLB、研究资料、截图与交付压缩包已在 `.gitignore` 中排除；Cloudflare 会从源码重新生成 `dist/`。
 
-## Cloudflare Pages
+## Cloudflare 部署
 
-1. 登录 Cloudflare，进入 **Workers & Pages**，选择 **Create application → Pages → Import an existing Git repository**。
-2. 连接 GitHub 并选择本项目仓库。
-3. 使用以下构建设置：
+线上地址：https://gdut-campus-atlas.gdut-campus-atlas.workers.dev
 
-   - Production branch：`main`
-   - Framework preset：`Vite`
-   - Build command：`npm run build`
-   - Build output directory：`dist`
-   - Root directory：留空
-   - Node.js：22
+项目已配置 `@cloudflare/vite-plugin`、Wrangler 和 `wrangler.jsonc`。登录 Cloudflare 后执行：
 
-4. 保存并部署。完成后会得到 `项目名.pages.dev` 地址；以后推送到 `main` 会自动重新构建。
+```powershell
+npm.cmd run deploy
+```
 
-项目使用相对资源路径，部署在 `pages.dev` 根路径或自定义域名均可。网页运行不依赖研究资料、离线 GLB 或本地 Node 服务。
+该命令先执行 TypeScript 检查和 Vite 构建，再将 `dist/` 静态资源发布到 Cloudflare。`wrangler.jsonc` 将未知路径回退到单页应用入口。项目使用相对资源路径，网页运行不依赖研究资料、离线 GLB 或本地 Node 服务。
 
 ## 本地发布前检查
 
 ```powershell
 npm.cmd test
 npm.cmd run build
+npm.cmd run deploy
 ```
 
 Cloudflare Pages 单个静态文件上限为 25 MiB，因此不要把 `models/gdut-campus.glb` 复制进 `public/` 或 `dist/`。当前正式网页不包含该离线模型。

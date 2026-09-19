@@ -2,6 +2,10 @@
 
 一个可在本机浏览器运行的 Three.js 微缩校园。包括教学区、生活东区、生活西区，96 个已建地点、2 个默认隐藏的规划地点。图书馆、南门组团、体育馆、文化活动中心等采用独立参数化模型。
 
+在线体验：https://gdut-campus-atlas.gdut-campus-atlas.workers.dev
+
+源码仓库：https://github.com/Xuezhenggdut/gdut-campus-atlas
+
 ## 打开与关闭
 
 1. 双击项目根目录的 **START-CAMPUS.cmd**。浏览器自动打开本地网页。
@@ -11,6 +15,8 @@
 也可在项目目录运行 `npm run preview`，然后打开终端显示的地址；按 Ctrl+C 停止。
 
 无需 Blender，无需账号、在线 AI 服务、地图 API 密钥或服务器。当前已安装 Node.js v24.16.0，依赖与 `dist/` 已准备好。核心地图可在断开互联网后通过本地服务运行；资料来源链接是外部网页，需要联网查阅。请勿直接双击 `dist/index.html`，浏览器应通过本地 HTTP 服务加载模块。
+
+Cloudflare 预览可运行 `npm run preview:cloudflare`，发布新版本运行 `npm run deploy`。
 
 ## 操作
 
