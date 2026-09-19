@@ -74,7 +74,7 @@ export function inside([x,y]:Point,poly:Point[]){let c=false;for(let i=0,j=poly.
 // Refined centerlines keep the schematic corridors clear of building ground envelopes.
 // Preserve the checked residential/external streets. Rebuild academic streets
 // explicitly: shortest-path obstacle avoidance had created invented diagonals.
-const retained=new Set([0,1,13,14,15,16]);
+const retained=new Set([0,1]);
 const route=(name:string,width:number,points:Point[])=>({name,width,points:ground(points)});
 const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,i)=>retained.has(i)).map(r=>r===routeData[12]?{...r,points:r.points.map(([u,v])=>u===1064?[1069,572] as Point:[u,v] as Point)}:r),
  {name:'国医西路',width:19,main:true,points:[[411,53],[350,64],[288,84],[235,111],[196,149],[171,191],[151,237],[145,280],[148,323],[146,359]]},
@@ -82,6 +82,14 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  {name:'国医东路',width:27,main:true,points:canalWestRoad},
  {name:'大学城广工二路',width:27,main:true,points:canalEastRoad},
  {name:'西区滨水路',width:8,points:[[216,183],[207,207],[207,228],[195,250],[195,281],[188,307],[192,329],[209,338],[235,334],[258,333],[277,342],[302,362]]},
+ route('西区东西主路',9,[[-605,-190],[-510,-190],[-420,-190],[-330,-190],[-260,-197]]),
+ route('西区宿舍中横路',8,[[-605,-233],[-510,-233],[-420,-233],[-330,-233],[-325,-237],[-260,-237]]),
+ route('西区宿舍北横路',8,[[-592,-275],[-510,-275],[-420,-275],[-330,-275],[-260,-275]]),
+ route('西区宿舍西纵路',8,[[-510,-310],[-510,-190]]),
+ route('西区宿舍中纵路',8,[[-420,-275],[-420,-110]]),
+ route('西区宿舍东纵路',9,[[-330,-354],[-330,-110]]),
+ route('西区五六栋横路',7,[[-420,-151],[-330,-151]]),
+ route('西三食堂南侧路',8,[[-420,-110],[-330,-110],[-294,-108],[-258,-122],[-252,-197]]),
  {...route('大学城外环西路',24,[[-530.169,20.742],[-501,42],[-485,86],[-453,114],[-395.859,120.160],[-246.901,164.178],[-171.521,240.009],[-130.845,343.709],[-78.789,470],[140,474],[335,470],[505,430],[738.451,272.911],[807.634,173.718]]),main:true},
  route('创新大道',14,[[335,-88],[335,367]]),
  route('南门内外道路连接段',14,[[335,367],[335,470]]),
@@ -123,7 +131,17 @@ function ringDistance(p:Point){
  }));
 }
 export const roads:typeof roadGuides=rawRoads.flatMap((road,index)=>{
- const selected=(index>=2&&index<=5)||['国医东路','大学城广工二路','体育馆—网球场连接路'].includes(road.name??'');
+ if(road.name==='国医东路'||road.name==='大学城广工二路'){
+  const p=projectMap(road.points[0]);let nearest:Point=middleRing[0],distance=Infinity;
+  for(let i=1;i<middleRing.length;i++){
+   const a=middleRing[i-1],b=middleRing[i],dx=b[0]-a[0],dz=b[1]-a[1];
+   const t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz)));
+   const q:Point=[a[0]+t*dx,a[1]+t*dz],d=Math.hypot(q[0]-p[0],q[1]-p[1]);
+   if(d<distance){distance=d;nearest=q;}
+  }
+  return [{...road,points:[unprojectMap(nearest),...road.points]}];
+ }
+ const selected=road.name==='体育馆—网球场连接路';
  if(!selected)return [road];
  const clearance=(road.width*.9+3)/2+(25*.9+3)/2+14;
  const chunks:Point[][]=[];let chunk:Point[]=[];

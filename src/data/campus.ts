@@ -112,6 +112,10 @@ places.find(p=>p.id==='gdut-square')!.position=gateSquare.position;
 const westDiningThree=buildings.find(b=>b.id==='b-west-dining-3')!;
 westDiningThree.position=unprojectMap([-300,-160]);
 places.find(p=>p.id==='west-dining-3')!.position=westDiningThree.position;
+// West dining 3 is a north-south block beside the east gate, south of dorm 1.
+westDiningThree.position=unprojectMap([-294,-158]);
+Object.assign(westDiningThree,{width:42,depth:50,footprint:[[-21,-25],[21,-25],[21,25],[-21,25]]});
+places.find(p=>p.id==='west-dining-3')!.position=westDiningThree.position;
 const valley=unprojectMap([238,23]);
 // Supplied east-district plan: 9/10/11 west of Tiaozhan Road, 4–8 east;
 // 12–14 and dining 2 form the western column around an open central lawn.
