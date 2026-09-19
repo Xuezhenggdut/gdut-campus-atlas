@@ -107,3 +107,12 @@ test('internal road surfaces stop clear of public ring roads away from gates',()
   assert.ok(gap>(road.width+25)/2+2,`${name}: ${gap}`);
  }
 });
+
+test('two facility access roads meet the middle ring at signalized junctions',()=>{
+ for(const [name,x,z] of [['西三食堂—中环西路连接路',-300,-82],['体育馆—中环西路连接路',-220,-92]] as const){
+  const road=roads.find(r=>r.name===name)!;assert.ok(road);
+  const p=road.points.map(toWorld);const end=p.at(-1)!;
+  assert.ok(Math.hypot(end[0]-x,end[1]-z)<1,name);
+  assert.ok(p.length>=3,name);
+ }
+});
