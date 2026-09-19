@@ -18,6 +18,8 @@
 
 Cloudflare 预览可运行 `npm run preview:cloudflare`，发布新版本运行 `npm run deploy`。
 
+2026-09-19：补齐体育馆西侧与网球场东侧的南北向校园道路，北接中环西路、南接南1门道路，并纳入骑行与步行人流。见 `docs/体育馆与网球场连接路.md`。
+
 ## 操作
 
 - 鼠标左键拖动旋转、滚轮缩放、右键拖动平移。触屏一指旋转、双指缩放和平移（采用 Three.js OrbitControls）。

@@ -27,3 +27,16 @@ test('Zhixing west extension joins south-one gate and the football-side ring roa
  assert(Math.hypot(p[0][0]-gate[0],p[0][1]-gate[1])<.01);
  const end=p.at(-1)!;assert(Math.abs(end[0]+35)<.01);assert(end[1]>=115&&end[1]<=236);
 });
+
+test('gym and tennis courts are separated by a continuous campus road',()=>{
+ const road=roads.find(r=>r.name==='体育馆—网球场连接路')!;
+ assert.ok(road);
+ const points=road.points.map(toWorld);
+ assert.ok(points.length>=5);
+ assert.ok(points[0][1]<-95&&points.at(-1)![1]>=139);
+ const tennis=buildings.find(b=>b.id==='b-tennis')!,gym=buildings.find(b=>b.id==='b-gym')!;
+ const tx=toWorld(tennis.position)[0],gx=toWorld(gym.position)[0],rx=points[2][0];
+ assert.ok(tx<rx&&rx<gx,'road must run between tennis courts and gym');
+ const south=roads.find(r=>r.name==='知行大道（南1门段）')!.points.map(toWorld);
+ assert.ok(south.some(p=>Math.abs(p[1]-points.at(-1)![1])<1));
+});
