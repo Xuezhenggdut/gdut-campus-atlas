@@ -131,8 +131,8 @@ for(const [id,w,d,h] of [['innovation-a',43,32,27],['truth-a',62,23.4,27],['trut
  const b=buildings.find(b=>b.id==='b-'+id)!;Object.assign(b,{width:w,depth:d,height:h,floors:id.startsWith('virtue')?6:7,footprint:[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]]});
 }
 for(const [id,x,z] of [['innovation-a',354,-114],['truth-a',437,-108],['truth-b',425,-155]] as const){const b=buildings.find(b=>b.id==='b-'+id)!;b.position=unprojectMap([x,z]);places.find(p=>p.id===id)!.position=b.position;}
-const southOne=unprojectMap([-325,136.1666666667]);
-add({id:'south-one-gate',name:'南1门',aliases:['南一门'],x:southOne[0],y:southOne[1],w:16,d:5,h:4,rotation:1.41865,kind:'gate',cat:'service',source:'amap-20260919',description:'知行大道西端出入口。按用户提供高德地图补充道路连接；入口造型、位置和尺寸为示意。'});
+const southOne=unprojectMap([-325,106]);
+add({id:'south-one-gate',name:'南1门',aliases:['南一门'],x:southOne[0],y:southOne[1],w:16,d:5,h:4,rotation:1.33525,kind:'gate',cat:'service',source:'amap-20260919',description:'知行大道西端出入口。按用户提供高德地图补充道路连接；入口造型、位置和尺寸为示意。'});
 add({id:'innovation-stone',name:'工大创谷景石',aliases:['工大创谷','创谷石'],x:valley[0],y:valley[1],w:29,d:9,h:8,kind:'plaza',cat:'landscape',description:'教学五号楼与三号楼前、图书馆北侧的工大创谷景石。根据用户提供的官方地图局部补充；石体和刻字为示意复原。'});
 export const tourIds=['library','south-gate','admin','gym','culture','engineering-1','teaching-1','east-dining-1','west-dining-3'];
 export const sceneConfig={coordinateSystem:'official-illustration-oblique-corrected',projection:mapProjection,mapToWorldMatrix,north:'negative-Z',unit:'schematic',tourIds,defaultTarget:toWorld([651,650])};
