@@ -42,3 +42,20 @@ test('gym and tennis courts are separated by a continuous campus road',()=>{
  const north=roads.find(r=>r.name==='环教北路')!.points.map(toWorld);
  assert.ok(north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<1));
 });
+
+test('east dorms and dining hall retain a green setback north of the public middle ring',()=>{
+ const ring=roads.find(r=>r.name==='大学城中环西路')!;
+ const line=ring.points.map(toWorld);
+ const distance=(id:string)=>{
+  const b=buildings.find(b=>b.id===id)!,p=toWorld(b.position);
+  let d=Infinity;
+  for(let i=1;i<line.length;i++){
+   const a=line[i-1],q=line[i],dx=q[0]-a[0],dz=q[1]-a[1];
+   const t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz)));
+   d=Math.min(d,Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dz));
+  }
+  return d-b.depth/2-ring.width/2;
+ };
+ assert.ok(distance('b-east-dining-2')>28);
+ assert.ok(distance('b-east-dorm-9')>30);
+});

@@ -31,7 +31,12 @@ export const toWorld=projectMap;
 export const yaw = campusYaw;
 export function mapFootprint(b:Building):Point[]{const [x,z]=toWorld(b.position),c=Math.cos(b.rotation),s=Math.sin(b.rotation);return b.footprint.map(([u,v])=>unprojectMap([x+u*c+v*s,z-u*s+v*c]));}
 type Spec={id:string;name:string;x:number;y:number;w:number;d:number;h?:number;floors?:number;kind:ModelKind;area?:Area;cat?:Category;color?:string;aliases?:string[];description?:string;source?:string;landmark?:boolean;planned?:boolean;rotation?:number};
-function add(s:Spec){const bid='b-'+s.id; const position:Point=[s.x,s.y];const h=s.h??(s.floors??5)*3; const w=s.w*.9,d=s.d*.9;
+// Amap crop shows a broader green setback at the south edge of the east
+// residential district. Pull only the buildings facing the ring road north;
+// shifting the whole district would push its northern buildings into roads.
+const eastSouthEdgeIds=new Set(['east-dining-2','east-dorm-4','east-dorm-9']);
+const eastSouthEdgeOffset:Point=[10,-9];
+function add(s:Spec){const bid='b-'+s.id; const position:Point=eastSouthEdgeIds.has(s.id)?[s.x+eastSouthEdgeOffset[0],s.y+eastSouthEdgeOffset[1]]:[s.x,s.y];const h=s.h??(s.floors??5)*3; const w=s.w*.9,d=s.d*.9;
  buildings.push({id:bid,placeIds:[s.id],position,footprint:[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]],width:w,depth:d,height:h,floors:s.floors??Math.round(h/3),kind:s.kind,color:s.color??'#e7dfcb',rotation:s.rotation??yaw,heightBasis:'依官方插画及外观参考估计；示意高度，未测绘。'});
  places.push({id:s.id,name:s.name,aliases:s.aliases??[],area:s.area??'academic',category:s.cat??'study',position,description:s.description??`${s.name}位于${areas[s.area??'academic'].name}。位置与名称依据官方校园示意图；建筑以微缩方式呈现。`,status:s.planned?'planned':'built',sourceIds:[...new Set(['map',...(s.source?[s.source]:[])])],buildingIds:[bid],landmark:s.landmark});
 }
