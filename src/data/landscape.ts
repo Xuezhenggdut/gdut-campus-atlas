@@ -76,7 +76,7 @@ export function inside([x,y]:Point,poly:Point[]){let c=false;for(let i=0,j=poly.
 // explicitly: shortest-path obstacle avoidance had created invented diagonals.
 const retained=new Set([0,1,8,9,10,11,12,13,14,15,16]);
 const route=(name:string,width:number,points:Point[])=>({name,width,points:ground(points)});
-export const roads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,i)=>retained.has(i)).map(r=>r===routeData[12]?{...r,points:r.points.map(([u,v])=>u===1064?[1069,572] as Point:[u,v] as Point)}:r),
+const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,i)=>retained.has(i)).map(r=>r===routeData[12]?{...r,points:r.points.map(([u,v])=>u===1064?[1069,572] as Point:[u,v] as Point)}:r),
  {name:'国医西路',width:19,main:true,points:[[411,53],[350,64],[288,84],[235,111],[196,149],[171,191],[151,237],[145,280],[148,323],[146,359]]},
  {name:'西区西门连接路',width:13,points:[[182,158],[196,169],[240,196],[268,213]]},
  {name:'国医东路',width:27,main:true,points:canalWestRoad},
@@ -102,6 +102,38 @@ export const roads:typeof roadGuides=[...(routeData as typeof roadGuides).filter
  route('教学区—东区桥下通道',10,[[97,-121.219],[97,45]]),
  route('教学楼组团横向道路',8,[[97,-29],[335,-29],[519,-29]]),
 ];
+
+// Remove the annotated middle-ring frontage spurs, including their junctions.
+// Clip only this frontage; preserve the residential streets farther inside.
+const middleRing=rawRoads[0].points.map(projectMap);
+function ringDistance(p:Point){
+ return Math.min(...middleRing.slice(1).map((b,i)=>{
+  const a=middleRing[i],dx=b[0]-a[0],dz=b[1]-a[1];
+  const t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz)));
+  return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dz);
+ }));
+}
+export const roads:typeof roadGuides=rawRoads.flatMap((road,index)=>{
+ const selected=(index>=2&&index<=10)||['国医东路','大学城广工二路','体育馆—网球场连接路','教学区—东区桥下通道'].includes(road.name??'');
+ if(!selected)return [road];
+ const clearance=(road.width*.9+3)/2+(25*.9+3)/2+14;
+ const chunks:Point[][]=[];let chunk:Point[]=[];
+ const flush=()=>{if(chunk.length>1)chunks.push(chunk);chunk=[];};
+ const line=road.points.map(projectMap);
+ for(let i=1;i<line.length;i++){
+  const a=line[i-1],b=line[i],count=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1]));
+  for(let j=i===1?0:1;j<=count;j++){
+   const p:Point=[a[0]+(b[0]-a[0])*j/count,a[1]+(b[1]-a[1])*j/count];
+   if(ringDistance(p)<clearance){flush();continue;}
+   // Keep bends but collapse collinear samples to avoid dense miter geometry.
+   if(chunk.length>=2){const u=chunk[chunk.length-2],v=chunk[chunk.length-1];
+    if(Math.abs((v[0]-u[0])*(p[1]-v[1])-(v[1]-u[1])*(p[0]-v[0]))<1e-7)chunk.pop();
+   }
+   chunk.push(p);
+  }
+ }
+ flush();return chunks.map(points=>({...road,points:ground(points)}));
+});
 
 
 

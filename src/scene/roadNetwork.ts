@@ -20,17 +20,6 @@ function academicEastJunction(parts:Parts){
  for(const sz of [-1,1])for(let i=0;i<3;i++)parts.box(.18,.045,2.7,x,.51,z+sz*(14+i*4),yellow);
  for(const sx of [-1,1])for(let i=0;i<3;i++)parts.box(2.7,.045,.18,x+sx*(15+i*4),.51,z,yellow);
 }
-function signalizedJunction(parts:Parts,x:number,z:number){
- const pole='#68736d',head='#394843',red='#d35d4c',amber='#e0b34f',green='#63a36d';
- for(const sx of [-1,1])for(const sz of [-1,1]){
-  const px=x+sx*7,pz=z+sz*7;
-  parts.cylinder(.12,4.2,px,2.1,pz,pole);
-  parts.box(.42,1.35,.28,px,4.15,pz,head);
-  parts.cylinder(.08,.04,px,4.52,pz-.15*sz,red, .08, 8);
-  parts.cylinder(.08,.04,px,4.15,pz-.15*sz,amber, .08, 8);
-  parts.cylinder(.08,.04,px,3.78,pz-.15*sz,green, .08, 8);
- }
-}
 export function makeRoadNetwork(){
  const group=new T.Group(),parts=new Parts();
  for(const road of roads){
@@ -51,7 +40,5 @@ export function makeRoadNetwork(){
   }
  }
  academicEastJunction(parts);
- signalizedJunction(parts,-255,-95);
- signalizedJunction(parts,97,-93);
  group.add(parts.finish());group.name='roads-with-GDUT-overpass';return group;
 }

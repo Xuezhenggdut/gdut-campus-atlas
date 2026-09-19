@@ -15,13 +15,13 @@ test('research twin courtyards, innovation A atrium and student dorm court are a
   disposeTree(g);
  }
 });
-test('two north-south campus roads cross the middle ring at grade',()=>{
+test('removed middle-ring connections leave a gap on both sides',()=>{
  const g=makeRoadNetwork();g.updateMatrixWorld(true);
  const ray=new T.Raycaster(new T.Vector3(97,100,-92.885),new T.Vector3(0,-1,0));const hits=ray.intersectObject(g,true);
  assert(hits.some(h=>h.point.y<.6));assert.equal(hits.some(h=>h.point.y>2),false);
- const left=roads.find(r=>r.name==='体育馆—网球场连接路')!.points.map(toWorld);
- const right=roads.find(r=>r.name==='教学区—东区桥下通道')!.points.map(toWorld);
- for(const [line,z] of [[left,-95],[right,-93]] as const){const ys=line.map(p=>p[1]);assert(Math.min(...ys)<z-20&&Math.max(...ys)>z+20);}
+ for(const [name,z] of [['体育馆—网球场连接路',-95],['教学区—东区桥下通道',-93]] as const){
+  for(const road of roads.filter(r=>r.name===name)){const ys=road.points.map(toWorld).map(p=>p[1]);assert(Math.max(...ys)<z-20||Math.min(...ys)>z+20);}
+ }
  disposeTree(g);
 });
 test('Zhixing west extension joins south-one gate and the football-side ring road',()=>{
@@ -31,13 +31,13 @@ test('Zhixing west extension joins south-one gate and the football-side ring roa
 });
 
 test('gym and tennis courts are separated by a continuous campus road',()=>{
- const road=roads.find(r=>r.name==='体育馆—网球场连接路')!;
+ const road=roads.find(r=>r.name==='体育馆—网球场连接路'&&toWorld(r.points.at(-1)!)[1]>100)!;
  assert.ok(road);
  const points=road.points.map(toWorld);
- assert.ok(points.length>=5);
- assert.ok(points[0][1]<-65&&points.at(-1)![1]>=139);
+ assert.ok(points.length>=2);
+ assert.ok(points[0][1]<0&&points.at(-1)![1]>=139);
  const tennis=buildings.find(b=>b.id==='b-tennis')!,gym=buildings.find(b=>b.id==='b-gym')!;
- const tx=toWorld(tennis.position)[0],gx=toWorld(gym.position)[0],rx=points[2][0];
+ const tx=toWorld(tennis.position)[0],gx=toWorld(gym.position)[0],rx=points.at(-1)![0];
  assert.ok(tx<rx&&rx<gx,'road must run between tennis courts and gym');
  const south=roads.find(r=>r.name==='知行大道（南1门段）')!.points.map(toWorld);
  assert.ok(south.some(p=>Math.abs(p[1]-points.at(-1)![1])<1));
