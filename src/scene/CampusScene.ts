@@ -2,6 +2,7 @@ import {CampusMobility} from './campusMobility';
 import {applyNightEmission,makeNightLighting} from './nightLighting';
 import {makeConnections} from './connections';
 import {makeRoadNetwork} from './roadNetwork';
+import {makeLakeDucks} from './lakeDucks';
 import {makeResidentialPark} from './residentialPark';
 import {makeAfterglowSky,makeNightSky,type LightMode} from './lighting';
 import {photoViews} from '../data/photoViews';
@@ -44,6 +45,7 @@ export class CampusScene {
  this.terrain.add(flatPolygon(lakeIsland.map(toWorld),'#b9c6a7',.25));
  this.terrain.add(flatPolygon(libraryWestForecourt.map(toWorld),'#ded8c7',.56));
  this.terrain.add(makeRoadNetwork());
+ this.terrain.add(makeLakeDucks());
  promenades.forEach(p=>this.terrain.add(pathMesh(p.map(toWorld),3.4,'#e3dbc5',.5)));
  // Plaza in front of the library, ground pattern independent of source image.
  const lib=toWorld([761,897]);const plaza=new T.Mesh(new T.CircleGeometry(48,40),new T.MeshStandardMaterial({color:'#ded8c7'}));plaza.rotation.x=-Math.PI/2;plaza.position.set(lib[0],.55,lib[1]);plaza.receiveShadow=true;this.terrain.add(plaza);
