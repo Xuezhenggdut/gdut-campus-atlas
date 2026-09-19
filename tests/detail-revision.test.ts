@@ -15,11 +15,13 @@ test('research twin courtyards, innovation A atrium and student dorm court are a
   disposeTree(g);
  }
 });
-test('campus passage continues under the elevated bridge with unobstructed clearance',()=>{
+test('two north-south campus roads cross the middle ring at grade',()=>{
  const g=makeRoadNetwork();g.updateMatrixWorld(true);
  const ray=new T.Raycaster(new T.Vector3(97,100,-92.885),new T.Vector3(0,-1,0));const hits=ray.intersectObject(g,true);
- assert(hits.some(h=>h.point.y>7&&h.point.y<8));assert(hits.some(h=>h.point.y<.5));
- const forward=new T.Raycaster(new T.Vector3(97,3,-120),new T.Vector3(0,0,1),0,155);assert.equal(forward.intersectObject(g,true).length,0);
+ assert(hits.some(h=>h.point.y<.6));assert.equal(hits.some(h=>h.point.y>2),false);
+ const left=roads.find(r=>r.name==='体育馆—网球场连接路')!.points.map(toWorld);
+ const right=roads.find(r=>r.name==='教学区—东区桥下通道')!.points.map(toWorld);
+ for(const [line,z] of [[left,-95],[right,-93]] as const){const ys=line.map(p=>p[1]);assert(Math.min(...ys)<z-20&&Math.max(...ys)>z+20);}
  disposeTree(g);
 });
 test('Zhixing west extension joins south-one gate and the football-side ring road',()=>{
@@ -92,7 +94,7 @@ test('west third dining hall retains a broad setback from the academic northwest
  assert.ok(a[1]<b[1]-60);
 });
 
-test('internal road surfaces stop clear of public ring roads away from gates',()=>{
+test('non-connecting internal road surfaces stop clear of public ring roads',()=>{
  const segmentDistance=(a:[number,number],b:[number,number],c:[number,number],d:[number,number])=>{
   const ux=b[0]-a[0],uz=b[1]-a[1],vx=d[0]-c[0],vz=d[1]-c[1],wx=a[0]-c[0],wz=a[1]-c[1];
   const A=ux*ux+uz*uz,B=ux*vx+uz*vz,C=vx*vx+vz*vz,D=ux*wx+uz*wz,E=vx*wx+vz*wz,den=A*C-B*B;
@@ -101,20 +103,13 @@ test('internal road surfaces stop clear of public ring roads away from gates',()
   return Math.hypot(a[0]+s*ux-c[0]-t*vx,a[1]+s*uz-c[1]-t*vz);
  };
  const publicRoads=roads.filter(r=>r.name==='大学城中环西路'||r.name==='大学城外环西路');
- for(const name of ['环教北路','体育馆—网球场连接路','东侧环教路']){
+ for(const name of ['环教北路','东侧环教路']){
   const road=roads.find(r=>r.name===name)!,a=road.points.map(toWorld);let gap=Infinity;
   for(const outer of publicRoads){const b=outer.points.map(toWorld);for(let i=0;i<a.length-1;i++)for(let j=0;j<b.length-1;j++)gap=Math.min(gap,segmentDistance(a[i],a[i+1],b[j],b[j+1]));}
   assert.ok(gap>(road.width+25)/2+2,`${name}: ${gap}`);
  }
 });
 
-test('two facility access roads meet the middle ring at signalized junctions',()=>{
- for(const [name,x,z] of [['西三食堂—中环西路连接路',-270,-82],['体育馆—中环西路连接路',-220,-92]] as const){
-  const road=roads.find(r=>r.name===name)!;assert.ok(road);
-  const p=road.points.map(toWorld);
-  assert.ok(p.some(q=>Math.hypot(q[0]-x,q[1]-z)<1),name);
-  assert.ok(p.length>=5,name);
-  const ys=p.map(q=>q[1]);
-  assert.ok(Math.min(...ys)<z-25&&Math.max(...ys)>z+25,`${name}: road must continue on both sides of the ring`);
- }
+test('mistaken duplicate access roads are absent',()=>{
+ assert.equal(roads.some(r=>r.name==='西三食堂—中环西路连接路'||r.name==='体育馆—中环西路连接路'),false);
 });
