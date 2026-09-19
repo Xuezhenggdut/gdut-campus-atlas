@@ -15,11 +15,14 @@ test('research twin courtyards, innovation A atrium and student dorm court are a
   disposeTree(g);
  }
 });
-test('removed middle-ring connections leave a gap on both sides',()=>{
+test('Tiaozhan Road passes under Guangong bridge while deleted west connections stay separated',()=>{
  const g=makeRoadNetwork();g.updateMatrixWorld(true);
  const ray=new T.Raycaster(new T.Vector3(97,100,-92.885),new T.Vector3(0,-1,0));const hits=ray.intersectObject(g,true);
- assert(hits.some(h=>h.point.y<.6));assert.equal(hits.some(h=>h.point.y>2),false);
- for(const [name,z] of [['体育馆—网球场连接路',-95],['教学区—东区桥下通道',-93]] as const){
+ assert(hits.some(h=>h.point.y<.6));assert(hits.some(h=>h.point.y>7));
+ const passage=roads.find(r=>r.name==='挑战路')!.points.map(toWorld);
+ assert(passage[0][1]<-200&&passage.at(-1)![1]>0);
+ const forward=new T.Raycaster(new T.Vector3(97,3,-120),new T.Vector3(0,0,1),0,155);assert.equal(forward.intersectObject(g,true).length,0);
+ for(const [name,z] of [['体育馆—网球场连接路',-95]] as const){
   for(const road of roads.filter(r=>r.name===name)){const ys=road.points.map(toWorld).map(p=>p[1]);assert(Math.max(...ys)<z-20||Math.min(...ys)>z+20);}
  }
  disposeTree(g);

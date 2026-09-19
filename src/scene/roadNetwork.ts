@@ -4,7 +4,10 @@ import {toWorld} from '../data/campus';
 import {Parts,pathMesh} from './geometry';
 
 export function roadElevation(name:string|undefined,x:number){
- void name;void x;return .4;
+ if(name!=='大学城中环西路'||x<20||x>175)return .4;
+ if(x<68)return .4+(x-20)/48*7.1;
+ if(x>126)return .4+(175-x)/49*7.1;
+ return 7.5;
 }
 function academicEastJunction(parts:Parts){
  const x=97,z=-50,blue='#1a9ac4',mark='#f3f0df',yellow='#d6ad43';
@@ -40,5 +43,8 @@ export function makeRoadNetwork(){
   }
  }
  academicEastJunction(parts);
+ // 广工天桥: supports leave the complete Tiaozhan Road corridor open.
+ for(const x of [67,128])for(const z of [-103,-83])parts.box(1.4,6.3,1.4,x,3.15,z,'#b7bdb4');
+ for(const z of [-105,-81])parts.beam([68,7.8,z],[126,7.8,z],.25,'#dce0d6');
  group.add(parts.finish());group.name='roads-with-GDUT-overpass';return group;
 }

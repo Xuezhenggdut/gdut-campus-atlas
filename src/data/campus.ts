@@ -113,6 +113,15 @@ const westDiningThree=buildings.find(b=>b.id==='b-west-dining-3')!;
 westDiningThree.position=unprojectMap([-300,-160]);
 places.find(p=>p.id==='west-dining-3')!.position=westDiningThree.position;
 const valley=unprojectMap([238,23]);
+// Supplied east-district plan: 9/10/11 west of Tiaozhan Road, 4–8 east;
+// 12–14 and dining 2 form the western column around an open central lawn.
+for(const [id,x,z] of [['east-dorm-9',65,-163],['east-dorm-10',65,-205],['east-dorm-11',65,-247],['east-dorm-4',165,-163],['east-dorm-5',165,-205],['east-dorm-6',165,-247],['east-dorm-7',165,-289],['east-dorm-8',165,-331],['east-dorm-12',-44,-247],['east-dorm-13',-44,-289],['east-dorm-14',-44,-331],['east-dining-2',-56,-199],['east-dining-1',180,-375]] as const){
+ const b=buildings.find(b=>b.id==='b-'+id)!;b.position=unprojectMap([x,z]);
+ for(const p of places.filter(p=>b.placeIds.includes(p.id)))p.position=b.position;
+}
+const diningOne=buildings.find(b=>b.id==='b-east-dining-1')!;
+diningOne.position=unprojectMap([163.83098591549296,-357.92488262910797]);places.find(p=>p.id==='east-dining-1')!.position=diningOne.position;
+for(const [id,z] of [['east-dorm-7',-278],['east-dorm-8',-308]] as const){const b=buildings.find(b=>b.id==='b-'+id)!;b.position=unprojectMap([165,z]);places.find(p=>p.id===id)!.position=b.position;}
 // Type proportions from supplied map crops; height and footprint remain schematic.
 for(const [id,w,d,h] of [['innovation-a',43,32,27],['truth-a',62,23.4,27],['truth-b',34,28,27],['virtue-a',36,27,23],['virtue-b',36,27,23]] as const){
  const b=buildings.find(b=>b.id==='b-'+id)!;Object.assign(b,{width:w,depth:d,height:h,floors:id.startsWith('virtue')?6:7,footprint:[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]]});

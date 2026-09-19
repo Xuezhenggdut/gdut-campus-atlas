@@ -74,7 +74,7 @@ export function inside([x,y]:Point,poly:Point[]){let c=false;for(let i=0,j=poly.
 // Refined centerlines keep the schematic corridors clear of building ground envelopes.
 // Preserve the checked residential/external streets. Rebuild academic streets
 // explicitly: shortest-path obstacle avoidance had created invented diagonals.
-const retained=new Set([0,1,8,9,10,11,12,13,14,15,16]);
+const retained=new Set([0,1,13,14,15,16]);
 const route=(name:string,width:number,points:Point[])=>({name,width,points:ground(points)});
 const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,i)=>retained.has(i)).map(r=>r===routeData[12]?{...r,points:r.points.map(([u,v])=>u===1064?[1069,572] as Point:[u,v] as Point)}:r),
  {name:'国医西路',width:19,main:true,points:[[411,53],[350,64],[288,84],[235,111],[196,149],[171,191],[151,237],[145,280],[148,323],[146,359]]},
@@ -99,7 +99,16 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  ...[110,168,225,278].map((z,i)=>route(i===1?'研学二路':'科研楼组团横向道路',8,[[397,z+researchRowOffset],[495,z+researchRowOffset],[600,z+researchRowOffset]])),
  route('环教路',12,[[25,45],[-35,75],[-35,115],[-35,236],[-20,290],[-17,342],[-6,365],[14,382],[45,390],[80,380],[108,370],[137,373],[165,389],[191,397],[218,398],[249,402],[283,381],[310,367],[335,367]]),
  route('东侧环教路',12,[[495,350],[518,357],[540,357],[650,285],[690,255],[710,240],[700,165],[660,18],[564,18]]),
- route('教学区—东区桥下通道',10,[[97,-121.219],[97,45]]),
+ route('挑战路',10,[[97,-226],[97,-140],[97,-93],[97,-50],[97,45]]),
+ route('东苑西侧路',8,[[0,-352],[0,-140],[12,-132],[125,-132],[125,-350]]),
+ route('东苑二路',8,[[125,-405],[125,-132]]),
+ route('东苑一横路',8,[[0,-226],[235,-226]]),
+ route('东苑三横路',8,[[125,-328],[210,-328]]),
+ route('东区宿舍南侧路',8,[[-90,-140],[0,-140],[97,-140],[125,-140],[230,-140]]),
+ route('东区宿舍横路',7,[[-85,-268],[0,-268]]),
+ route('东区宿舍横路',7,[[125,-263],[235,-263]]),
+ route('东区宿舍横路',7,[[125,-293],[235,-293]]),
+ route('东区宿舍东西通道',8,[[-90,-268],[0,-268],[125,-268]]),
  route('教学楼组团横向道路',8,[[97,-29],[335,-29],[519,-29]]),
 ];
 
@@ -114,7 +123,7 @@ function ringDistance(p:Point){
  }));
 }
 export const roads:typeof roadGuides=rawRoads.flatMap((road,index)=>{
- const selected=(index>=2&&index<=10)||['国医东路','大学城广工二路','体育馆—网球场连接路','教学区—东区桥下通道'].includes(road.name??'');
+ const selected=(index>=2&&index<=5)||['国医东路','大学城广工二路','体育馆—网球场连接路'].includes(road.name??'');
  if(!selected)return [road];
  const clearance=(road.width*.9+3)/2+(25*.9+3)/2+14;
  const chunks:Point[][]=[];let chunk:Point[]=[];
