@@ -73,3 +73,21 @@ test('academic-east junction includes four blue cycle aprons and zebra markings'
  g.traverse(o=>{const m=o as T.Mesh;if(!m.isMesh)return;const mat=m.material as T.MeshStandardMaterial;if(mat.color?.getHexString()==='1a9ac4')blue++;if(mat.color?.getHexString()==='f3f0df')white++;});
  assert.ok(blue>=1);assert.ok(white>=1);disposeTree(g);
 });
+
+test('academic-east junction is set back from the public middle ring',()=>{
+ const link=roads.find(r=>r.name==='教学区—东区北联络路')!,p=link.points.map(toWorld),junction=p.find(q=>Math.abs(q[0]-97)<1)!;
+ const ring=roads.find(r=>r.name==='大学城中环西路')!.points.map(toWorld);
+ let d=Infinity;
+ for(let i=1;i<ring.length;i++){
+  const a=ring[i-1],b=ring[i],dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((junction[0]-a[0])*dx+(junction[1]-a[1])*dz)/(dx*dx+dz*dz)));
+  d=Math.min(d,Math.hypot(junction[0]-a[0]-t*dx,junction[1]-a[1]-t*dz));
+ }
+ assert.ok(d>35,`junction setback ${d}`);
+});
+
+test('west third dining hall retains a broad setback from the academic northwest gate',()=>{
+ const dining=buildings.find(b=>b.id==='b-west-dining-3')!,gate=buildings.find(b=>b.id==='b-academic-nw')!;
+ const a=toWorld(dining.position),b=toWorld(gate.position);
+ assert.ok(Math.hypot(a[0]-b[0],a[1]-b[1])>80);
+ assert.ok(a[1]<b[1]-60);
+});

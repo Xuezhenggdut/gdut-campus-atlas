@@ -13,7 +13,7 @@ export function roadElevation(name:string|undefined,x:number){
  return 7.5;
 }
 function academicEastJunction(parts:Parts){
- const x=97,z=-76,blue='#1a9ac4',mark='#f3f0df',yellow='#d6ad43';
+ const x=97,z=-50,blue='#1a9ac4',mark='#f3f0df',yellow='#d6ad43';
  // The supplied aerial shows blue cycle-priority aprons on all four corners.
  for(const sx of [-1,1])for(const sz of [-1,1]){
   parts.box(7.2,.035,5.2,x+sx*8.0,.47,z+sz*6.8,blue);

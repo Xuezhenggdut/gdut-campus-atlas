@@ -107,6 +107,11 @@ const square=buildings.find(b=>b.id==='b-diligence-square')!;square.width=40;squ
 const gateSquare=buildings.find(b=>b.id==='b-gdut-square')!;
 Object.assign(gateSquare,{position:unprojectMap([389,420]),width:70,depth:18,footprint:[[-35,-9],[35,-9],[35,9],[-35,9]]});
 places.find(p=>p.id==='gdut-square')!.position=gateSquare.position;
+// Amap places the third dining hall well inside the west residential area,
+// with a broad green setback from the academic northwest gate.
+const westDiningThree=buildings.find(b=>b.id==='b-west-dining-3')!;
+westDiningThree.position=unprojectMap([-300,-160]);
+places.find(p=>p.id==='west-dining-3')!.position=westDiningThree.position;
 const valley=unprojectMap([238,23]);
 // Type proportions from supplied map crops; height and footprint remain schematic.
 for(const [id,w,d,h] of [['innovation-a',43,32,27],['truth-a',62,23.4,27],['truth-b',34,28,27],['virtue-a',36,27,23],['virtue-b',36,27,23]] as const){
