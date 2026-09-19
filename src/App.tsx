@@ -30,7 +30,28 @@ function App(){const host=useRef<HTMLDivElement>(null),labels=useRef<HTMLDivElem
  useEffect(()=>{scene.current?.trafficVisible(trafficOn);const u=new URL(location.href);u.searchParams.set('traffic',trafficOn?'on':'off');history.replaceState({},'',u);},[trafficOn,ready,fallback]);
  useEffect(()=>{if(!about)return;const previous=document.activeElement as HTMLElement;const dialog=document.querySelector('.about-modal') as HTMLElement;const trap=(e:KeyboardEvent)=>{if(e.key!=='Tab')return;const nodes=Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]),a[href]'));const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}};document.addEventListener('keydown',trap);return()=>{document.removeEventListener('keydown',trap);previous?.focus();};},[about]);
  useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(''),4500);return ()=>clearTimeout(timer);},[toast]);
- useEffect(()=>{if(!tour||!ready||fallback)return;setQuery('');setArea('all');setCategory('all');const visit=()=>{const id=tourIds[tourIndex.current%tourIds.length];setSelected(id);scene.current?.tourLandmark(id);const u=new URL(location.href);u.searchParams.set('place',id);history.replaceState({},'',u);};visit();const timer=setInterval(()=>{tourIndex.current=(tourIndex.current+1)%tourIds.length;visit();},9500);return ()=>{clearInterval(timer);scene.current?.stopTour();};},[tour,ready,fallback]);
+ useEffect(()=>{
+  if(!tour||!ready||fallback)return;
+  setQuery('');setArea('all');setCategory('all');setMode('day');
+  let timer:ReturnType<typeof setTimeout>;
+  const later=(fn:()=>void,ms:number)=>{timer=setTimeout(fn,ms);};
+  const finish=()=>{setTour(false);};
+  const showNight=()=>{setMode('night');later(finish,4500);};
+  const showAfterglow=()=>{setMode('afterglow');later(showNight,4500);};
+  const showSunset=()=>{setMode('sunset');later(showAfterglow,4500);};
+  const pullBack=()=>{
+   scene.current?.stopTour();setSelected(null);scene.current?.overview(false,3500);
+   const u=new URL(location.href);u.searchParams.delete('place');history.replaceState({},'',u);
+   later(showSunset,4500);
+  };
+  const visit=()=>{
+   const id=tourIds[tourIndex.current];setSelected(id);scene.current?.tourLandmark(id);
+   const u=new URL(location.href);u.searchParams.set('place',id);history.replaceState({},'',u);
+   later(()=>{tourIndex.current++;if(tourIndex.current<tourIds.length)visit();else pullBack();},9500);
+  };
+  tourIndex.current=0;visit();
+  return ()=>{clearTimeout(timer);scene.current?.stopTour();};
+ },[tour,ready,fallback]);
  useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape'){setAbout(false);setFilters(false);setExpanded(false);setTour(false);setOrbit(false);scene.current?.setOrbit(false);}};window.addEventListener('keydown',handler);return ()=>window.removeEventListener('keydown',handler);},[]);
  useEffect(()=>{window.__atlas={scene:scene.current,select:choose,overview:reset,area:goArea,setPlanned,setFallback,setMode,getState:()=>({selected,area,category,planned,mode,tour,ready,fallback,results:results.length}),exportModel:async(id)=>{if(!scene.current)throw new Error('请切换至三维模式后导出');return scene.current.exportModel(id);}};});
  async function exportModel(id='campus'){if(!scene.current){setToast('请切换到三维模式后导出模型');return;}setExporting(true);try{const {data}=await scene.current.exportModel(id);const url=URL.createObjectURL(new Blob([data],{type:'model/gltf-binary'}));const a=document.createElement('a');a.href=url;a.download=id==='campus'?'gdut-campus.glb':`${id}.glb`;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);setToast('模型已导出，并通过重新加载检查');}catch(e){setToast('导出未完成：'+String(e));}finally{setExporting(false);}}

@@ -18,9 +18,9 @@ test('aliases, Chinese multi-digit numbers, exact matching and empty results',()
  assert.equal(findPlaces('西十七').length,0);assert.equal(findPlaces('西十七','all','all',true)[0]?.id,'west-dorm-17');
  assert(findPlaces('','east','living').every(p=>p.area==='east'&&p.category==='living'));
 });
-test('dorms remain individual POIs and tour covers nine built landmarks including administration',()=>{
+test('dorms remain individual POIs and tour follows the five requested landmarks in order',()=>{
  assert.equal(places.filter(p=>/^east-dorm-/.test(p.id)).length,14);assert.equal(places.filter(p=>/^west-dorm-/.test(p.id)).length,17);
- assert.equal(tourIds.length,9);assert(tourIds.includes('admin'));tourIds.forEach(id=>assert(places.some(p=>p.id===id&&p.landmark&&p.status==='built')));
+ assert.deepEqual(tourIds,['library','south-gate','admin','gym','culture']);tourIds.forEach(id=>assert(places.some(p=>p.id===id&&p.landmark&&p.status==='built')));
  const n=mapProjection.northOnPage,a=toWorld([650,665]),b=toWorld([650+n[0]*100,665+n[1]*100]);assert(Math.abs(a[0]-b[0])<.0001);assert(b[1]<a[1]);
 });
 test('all generated models have finite, nonempty geometry; library has multiple distinct materials',()=>{
