@@ -2,6 +2,7 @@ import * as T from 'three';
 import {roads} from '../data/landscape';
 import {toWorld,type Point} from '../data/campus';
 import {Parts} from './geometry';
+import {roadElevation} from './roadNetwork';
 
 export type MobilityRoute={name:string;width:number;points:Point[];distances:number[];length:number};
 export function mobilityRoute(name:string,width:number,points:Point[]):MobilityRoute{
@@ -13,7 +14,9 @@ export function routePose(route:MobilityRoute,distance:number,direction:number,l
  const d=((distance%route.length)+route.length)%route.length;
  let i=1;while(i<route.distances.length-1&&route.distances[i]<d)i++;
  const a=route.points[i-1],b=route.points[i],len=route.distances[i]-route.distances[i-1],t=(d-route.distances[i-1])/len,ux=(b[0]-a[0])/len,uz=(b[1]-a[1])/len;
- return {x:a[0]+(b[0]-a[0])*t+uz*lane*direction,z:a[1]+(b[1]-a[1])*t-ux*lane*direction,yaw:Math.atan2(ux*direction,uz*direction),scale:Math.min(1,d/5,(route.length-d)/5)};
+ const x=a[0]+(b[0]-a[0])*t+uz*lane*direction,z=a[1]+(b[1]-a[1])*t-ux*lane*direction;
+ const front=roadElevation(route.name,x+ux*direction*2.9),rear=roadElevation(route.name,x-ux*direction*2.9);
+ return {x,z,y:roadElevation(route.name,x)+.06,pitch:-Math.atan2(front-rear,5.8),yaw:Math.atan2(ux*direction,uz*direction),scale:Math.min(1,d/5,(route.length-d)/5)};
 }
 const internalNames=new Set(['创新大道','知行大道','知行大道（南1门段）','环教北路','教学区—东区北联络路','体育馆—网球场连接路','教学区—东区桥下通道','求是路','明德路','博雅路','研学二路','科研楼组团横向道路','教学楼组团横向道路','西区滨水路','环教路']);
 export function mobilityRoutes(){return {
@@ -64,5 +67,5 @@ export class CampusMobility{
  setVisible(visible:boolean){this.group.visible=visible;}
  setNight(night:boolean){this.group.traverse(o=>{if(o instanceof T.Mesh){const m=o.material as T.MeshStandardMaterial|T.MeshLambertMaterial;if(['ffe7b0','de514e'].includes(m.color.getHexString())){m.emissive.copy(m.color);m.emissiveIntensity=night?2:0;}}});}
  step(delta:number,animate=true){if(!this.group.visible||!animate)return false;this.accumulator+=delta;if(this.accumulator<1/24)return false;this.elapsed+=this.accumulator;this.accumulator=0;this.paint();return true;}
- private paint(){for(const b of this.batches){b.actors.forEach((a,i)=>{const p=routePose(a.route,a.offset+this.elapsed*a.speed*a.direction,a.direction,a.lane);this.pos.set(p.x,.46,p.z);this.rotation.setFromAxisAngle(T.Object3D.DEFAULT_UP,p.yaw);this.scale.setScalar(p.scale);this.matrix.compose(this.pos,this.rotation,this.scale);for(const mesh of b.meshes)mesh.setMatrixAt(i,this.matrix);});for(const mesh of b.meshes)mesh.instanceMatrix.needsUpdate=true;}}
+ private paint(){for(const b of this.batches){b.actors.forEach((a,i)=>{const p=routePose(a.route,a.offset+this.elapsed*a.speed*a.direction,a.direction,a.lane);this.pos.set(p.x,p.y,p.z);this.rotation.setFromEuler(new T.Euler(p.pitch,p.yaw,0,'YXZ'));this.scale.setScalar(p.scale);this.matrix.compose(this.pos,this.rotation,this.scale);for(const mesh of b.meshes)mesh.setMatrixAt(i,this.matrix);});for(const mesh of b.meshes)mesh.instanceMatrix.needsUpdate=true;}}
 }

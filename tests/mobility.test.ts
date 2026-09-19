@@ -4,6 +4,24 @@ import * as T from 'three';
 import {CampusMobility,mobilityActors,mobilityRoute,routePose} from '../src/scene/campusMobility';
 import {disposeTree} from '../src/scene/geometry';
 
+test('cars follow both bridge ramps while Tiaozhan traffic remains below',()=>{
+ const bridge=mobilityRoute('大学城中环西路',25,[[0,-93],[200,-93]]);
+ for(const direction of [-1,1]){
+  assert(Math.abs(routePose(bridge,97,direction,4.4).y-7.56)<.001);
+  assert(Math.abs(routePose(bridge,10,direction,4.4).y-.46)<.001);
+  assert(routePose(bridge,44,direction,4.4).pitch*direction<0);
+  assert(routePose(bridge,150,direction,4.4).pitch*direction>0);
+ }
+ const below=mobilityRoute('挑战路',10,[[97,-200],[97,45]]);
+ assert(Math.abs(routePose(below,107,1,1.65).y-.46)<.001);
+ const m=new CampusMobility(),mesh=m.group.getObjectByName('mobility-car')!.children[0] as T.InstancedMesh;
+ for(const [i,a] of mobilityActors().cars.entries()){
+  const matrix=new T.Matrix4();mesh.getMatrixAt(i,matrix);
+  assert(Math.abs(matrix.elements[13]-routePose(a.route,a.offset,a.direction,a.lane).y)<.00001);
+ }
+ disposeTree(m.group);
+});
+
 test('motor traffic stays on public ring roads; campus population primarily cycles',()=>{
  const {cars,bikes,walkers}=mobilityActors();assert(cars.length>0&&walkers.length>0&&bikes.length>walkers.length);
  assert(cars.every(a=>['大学城外环西路','大学城中环西路'].includes(a.route.name)));assert([...bikes,...walkers].every(a=>!['大学城外环西路','大学城中环西路'].includes(a.route.name)));
