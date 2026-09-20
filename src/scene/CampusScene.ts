@@ -2,7 +2,7 @@ import {CampusMobility} from './campusMobility';
 import {applyNightEmission,makeNightLighting} from './nightLighting';
 import {makeConnections} from './connections';
 import {makeRoadNetwork} from './roadNetwork';
-import {makeLakeDucks} from './lakeDucks';
+import {makeLakeDucks,swimLakeDucks} from './lakeDucks';
 import {makeResidentialPark} from './residentialPark';
 import {makeAfterglowSky,makeNightSky,type LightMode} from './lighting';
 import {photoViews} from '../data/photoViews';
@@ -29,6 +29,7 @@ export class CampusScene {
  this.resizeObs=new ResizeObserver(()=>this.resize());this.resizeObs.observe(host);this.resize();this.frame();this.readyAt=performance.now();callbacks.ready();this.loadDetails();
  }
  private v3(p:Point):[number,number,number]{return [p[0],0,p[1]];}
+ private ducks=makeLakeDucks();private duckTime=0;
  private tourOrbitAt=0;
  stopTour(){this.tourOrbitAt=0;this.controls.autoRotate=false;}
  tourLandmark(id:string){this.focus(id);this.landmarkView('tour');this.tourOrbitAt=performance.now()+1150;}
@@ -48,7 +49,7 @@ export class CampusScene {
  this.terrain.add(flatPolygon(lakeIsland.map(toWorld),'#b9c6a7',.25));
  this.terrain.add(flatPolygon(libraryWestForecourt.map(toWorld),'#ded8c7',.56));
  this.terrain.add(makeRoadNetwork());
- this.terrain.add(makeLakeDucks());
+ this.root.add(this.ducks);
  promenades.forEach(p=>this.terrain.add(pathMesh(p.map(toWorld),3.4,'#e3dbc5',.5)));
  // Plaza in front of the library, ground pattern independent of source image.
  const lib=toWorld([761,897]);const plaza=new T.Mesh(new T.CircleGeometry(48,40),new T.MeshStandardMaterial({color:'#ded8c7'}));plaza.rotation.x=-Math.PI/2;plaza.position.set(lib[0],.55,lib[1]);plaza.receiveShadow=true;this.terrain.add(plaza);
@@ -79,6 +80,7 @@ export class CampusScene {
  }
  private frame=(time=performance.now())=>{if(this.disposed)return;const delta=Math.min(.1,Math.max(0,(time-this.previousFrame)/1000));this.previousFrame=time;this.raf=requestAnimationFrame(this.frame);if(this.cameraTween){const t=Math.min(1,(time-this.cameraTween.start)/this.cameraTween.duration),s=1-Math.pow(1-t,3);this.camera.position.lerpVectors(this.cameraTween.from,this.cameraTween.to,s);this.controls.target.lerpVectors(this.cameraTween.targetFrom,this.cameraTween.targetTo,s);if(t===1)this.cameraTween=undefined;}this.controls.target.x=T.MathUtils.clamp(this.controls.target.x,-850,850);this.controls.target.z=T.MathUtils.clamp(this.controls.target.z,-850,850);if(!this.photoReference)this.controls.target.y=0;if(this.tourOrbitAt&&time>=this.tourOrbitAt){this.tourOrbitAt=0;this.controls.autoRotate=!this.reduced;this.controls.autoRotateSpeed=1.1;}this.controls.update(delta);this.camera.position.y=Math.max(2.5,this.camera.position.y);
  for(const b of buildings){if(b.height<4||places.find(p=>p.id===b.placeIds[0])?.status==='planned')continue;const [x,z]=toWorld(b.position),dx=this.camera.position.x-x,dz=this.camera.position.z-z,c=Math.cos(b.rotation),sn=Math.sin(b.rotation);if(Math.abs(dx*c-dz*sn)<b.width/2+8&&Math.abs(dx*sn+dz*c)<b.depth/2+8)this.camera.position.y=Math.max(this.camera.position.y,b.height+12);}
+if(!this.reduced&&!document.hidden){this.duckTime+=delta;swimLakeDucks(this.ducks,this.duckTime);this.dirty=true;}
 if(this.mobility.step(delta,!this.reduced&&!document.hidden))this.dirty=true;
 if(this.dirty){this.renderer.render(this.scene,this.camera);this.renderedFrames++;this.dirty=false;}this.layoutLabels(time);this.drawFrames.push(time);if(this.drawFrames.length>120)this.drawFrames.shift();if(!this.degraded&&time-this.started>12000&&this.fps<28){this.applyLowQuality();}};
  private applyLowQuality(){

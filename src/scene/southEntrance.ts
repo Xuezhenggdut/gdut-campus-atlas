@@ -34,11 +34,13 @@ export function makeEntranceOffice(b:Building,p:Parts){
  for(let j=0;j<=8;j++)for(const z of [-d*.62,d*.62])column(p,-w/2+j*w/8,z,h+5.1);
  // The front colonnade stands behind the three lawn slopes. The auditorium
  // is at its eastern end, not the object directly facing the central stairs.
- // The comprehensive building ends at its own footprint.
+ // Only the roof lattice and columns connect to engineering 1; no gallery floors.
  const [worldX]=toWorld(b.position);
- const extension=b.id==='b-admin'?408-worldX:w/2+1;
+ const engineering=buildings.find(v=>v.id==='b-engineering-1')!;
+ const engineeringWest=toWorld(engineering.position)[0]-engineering.width/2;
+ const extension=(b.id==='b-admin'?408:engineeringWest)-worldX;
  lattice(p,-w/2-1,extension,-d*.63,d*.63,h+5.8);
- const supports=(b.id==='b-admin'?[w/2+14,extension-13,extension]:[]).filter(x=>Math.abs(toWorld(b.position)[0]+x-335)>10);
+ const supports=(b.id==='b-admin'?[w/2+14,extension-13,extension]:[310-worldX,352-worldX,374-worldX,engineeringWest-worldX]).filter(x=>Math.abs(toWorld(b.position)[0]+x-335)>10);
  for(const x of supports)for(const z of [-d*.62,d*.62]){
   column(p,x,z,h+5.1);
   p.beam([x,h+4.3,z],[x-5,h+5.5,z],.27,metal);
