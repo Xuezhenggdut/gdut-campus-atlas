@@ -63,11 +63,11 @@ export function makeEntranceOffice(b:Building,p:Parts){
   p.box(right-left,.38,front-back,(left+right)/2,.23,(front+back)/2,'#cfcbbd');
   const flights=[{x:85,w:10},{x:110,w:10},{x:135,w:10},{x:160,w:10}];
   for(const flight of flights){
-   for(let i=0;i<18;i++)p.box(flight.w,.35,2.2,flight.x,.55+i*.23,front-2-i*2.2,light);
+   for(let i=0;i<18;i++)p.box(flight.w,.35,2.2,flight.x,.55+i*(4.625-.55)/17,front-2-i*2.2,light);
    for(const side of [-1,1])rail(p,[flight.x+side*flight.w/2,.65,front-1],[flight.x+side*flight.w/2,4.6,front-39]);
   }
   for(const [x,bw] of [[97.5,11],[122.5,11],[147.5,11]] as const){
-   for(let row=0;row<9;row++)p.box(bw,.38,3.8,x,.52+row*.42,front-4-row*4.3,row%3===0?'#626b44':'#85924f');
+   for(let row=0;row<9;row++)p.box(bw,.38,3.8,x,.52+row*(4.61-.52)/8,front-4-row*4.3,row%3===0?'#626b44':'#85924f');
    for(const side of [-1,1])rail(p,[x+side*bw/2,.8,front-5],[x+side*bw/2,4.5,front-37]);
   }
   // Broad, level lower square after the last stair. Its southern edge follows
