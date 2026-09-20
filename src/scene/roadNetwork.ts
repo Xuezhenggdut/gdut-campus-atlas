@@ -43,6 +43,12 @@ export function makeRoadNetwork(){
   }
  }
  academicEastJunction(parts);
+ for(const dz of [-6,6])parts.beam([277,1.5,384+dz],[318,1.5,363+dz],.22,'#dce0d6');
+ // Outer-ring crossing above the canal flowing south past the main entrance.
+ for(const z of [458,482]){
+  parts.beam([286,1.5,z],[327,1.5,z],.22,'#dce0d6');
+  for(let x=286;x<=327;x+=4.1)parts.box(.18,1.1,.18,x,.95,z,'#dce0d6');
+ }
  // 广工天桥: supports leave the complete Tiaozhan Road corridor open.
  for(const x of [67,128])for(const z of [-103,-83])parts.box(1.4,6.3,1.4,x,3.15,z,'#b7bdb4');
  for(const z of [-105,-81])parts.beam([68,7.8,z],[126,7.8,z],.25,'#dce0d6');
