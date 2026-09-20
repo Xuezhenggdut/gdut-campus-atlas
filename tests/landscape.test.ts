@@ -11,9 +11,13 @@ test('waterway ends south of the library west forecourt, leaving a broad dry app
  for(let x=102;x<=155;x+=2)for(let z=65;z<=100;z+=2)assert.equal(wet(x,z),false,`${x},${z}`);
  assert.equal(wet(105,125),true);
 });
-test('library stairs and platform remain dry, while the two administrative platforms are in water',()=>{
+test('library stairs and platform remain dry, and administration ground remains dry beside the open canal',()=>{
  for(let x=135;x<=254;x+=2)for(let z=44;z<=165;z+=2)assert.equal(wet(x,z),false,`library platform ${x},${z}`);
- for(const id of ['b-admin','b-comprehensive']){const [x,z]=toWorld(buildings.find(b=>b.id===id)!.position);assert.equal(wet(x,z),true,id);}
+ for(const id of ['b-admin','b-comprehensive']){const [x,z]=toWorld(buildings.find(b=>b.id===id)!.position);assert.equal(wet(x,z),id==='b-comprehensive',id);}
+});
+test('south canal remains connected beyond the outer ring',()=>{
+ for(let z=350;z<=490;z+=2)assert(wet(302,z));
+ for(let t=0;t<=1;t+=.02)assert(wet(307+26*t,490+ 75*t));
 });
 test('inner lake road is one continuous line through the south entrance and separate from outer ring',()=>{
  const ring=roads.find(r=>r.name==='环教路')!,outer=roads.find(r=>r.name==='大学城外环西路')!;
