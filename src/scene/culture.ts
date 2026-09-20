@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {Parts} from './geometry';
+import inscription from '../data/culture-inscription.json';
 import type {Building,Point} from '../data/campus';
 
 const stone='#e3e5dd',white='#f1f0e6',glass='#416973',frame='#b4c6c3',roof='#c8cbc2';
@@ -71,6 +72,16 @@ export function makeCulture(b:Building,p:Parts){
  p.box(w*.41,.09,foreD*.74,-w*.03,1.31,frontZ+foreD*.54,'#8aab65');
  for(const x of [-w*.36,w*.31]){p.box(w*.21,.10,foreD,x,1.34,frontZ+foreD/2,stone);for(const dx of [-.07,.07])p.box(.28,.03,foreD,x+dx*w,1.41,frontZ+foreD/2,'#9ca69b');}
  for(const x of [-w*.36,w*.31])for(let j=0;j<8;j++)p.box(w*.22,1.2-j*.14,.85,x,(1.2-j*.14)/2,frontZ+foreD+j*.7,stone);
+ // Freestanding white entrance letters, facing local +Z across the lawn.
+ const letterSize=w*.053,spacing=letterSize*1.2;
+ Object.values(inscription.glyphs).forEach((commands,i)=>{
+  const path=new T.ShapePath();
+  for(const [op,...args] of commands){const a=args as number[];if(op==='M')path.moveTo(a[0],a[1]);if(op==='L')path.lineTo(a[0],a[1]);if(op==='Q')path.quadraticCurveTo(a[0],a[1],a[2],a[3]);if(op==='C')path.bezierCurveTo(a[0],a[1],a[2],a[3],a[4],a[5]);if(op==='Z')path.currentPath?.closePath();}
+  const g=new T.ExtrudeGeometry(path.toShapes(false),{depth:inscription.em*.14,bevelEnabled:false,curveSegments:5});
+  g.scale(letterSize/inscription.em,letterSize/inscription.em,letterSize/inscription.em);
+  g.computeBoundingBox();const bottom=g.boundingBox!.min.y;
+  p.add(g,'#f5f5ef',[-spacing*3+i*spacing,1.38-bottom,frontZ+foreD*.60]);
+ });
  // Roof drainage/parapet seams retain detail without photo textures.
  for(let j=0;j<6;j++)p.box(w*.31,.025,.1,w*.33,canopy+.63,-d*.4+j*d*.15,'#b0b8ad');
 }
