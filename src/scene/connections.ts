@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {Parts} from './geometry';
+import {entrancePodium} from './entrancePodium';
 import {buildings,places,toWorld,type Area} from '../data/campus';
 
 // Only links explicitly visible in the official drawing; not pedestrian routing data.
@@ -50,5 +51,6 @@ export function makeConnections(area?:Area){const p=new Parts();
   }
   for(const [x,z] of [[x1,z1],[x2,z2]])for(const side of [-1,1])p.box(.45,25,.45,x+(ns?side*1.5:0),12.5,z+(ns?0:side*1.5),'#eeeede');
  }
+ if(!area||area==='academic')entrancePodium(p);
  const group=p.finish();group.name='PDF-confirmed-connections';return group;
 }
