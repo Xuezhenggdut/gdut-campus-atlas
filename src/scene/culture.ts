@@ -69,7 +69,9 @@ export function makeCulture(b:Building,p:Parts){
  for(let j=0;j<9;j++)p.box(w*.24,.19,.7,w*.34,1.3+j*(plinth-1.2)/9,d*.35+5.5-j*.6,stone);
  // The formal approach contains a rectangular lawn and two paved walks.
  const frontZ=d*.55,foreD=d*.64;p.box(w*.94,1.25,foreD,0,.625,frontZ+foreD/2,'#d3d6cb');
- p.box(w*.41,.09,foreD*.74,-w*.03,1.31,frontZ+foreD*.54,'#8aab65');
+ // A paved cross-walk separates the upper lawn from the lower inscription lawn.
+ p.box(w*.41,.09,foreD*.38,-w*.03,1.31,frontZ+foreD*.36,'#8aab65');
+ p.box(w*.41,.09,foreD*.27,-w*.03,1.31,frontZ+foreD*.785,'#8aab65');
  for(const x of [-w*.36,w*.31]){p.box(w*.21,.10,foreD,x,1.34,frontZ+foreD/2,stone);for(const dx of [-.07,.07])p.box(.28,.03,foreD,x+dx*w,1.41,frontZ+foreD/2,'#9ca69b');}
  for(const x of [-w*.36,w*.31])for(let j=0;j<8;j++)p.box(w*.22,1.2-j*.14,.85,x,(1.2-j*.14)/2,frontZ+foreD+j*.7,stone);
  // Letters occupy the central lawn above the approach stairs; their tops
@@ -83,7 +85,7 @@ export function makeCulture(b:Building,p:Parts){
   g.rotateX(-Math.PI/9);
   g.computeBoundingBox();const bounds=g.boundingBox!;
   const centerX=(bounds.min.x+bounds.max.x)/2;
-  p.add(g,'#f5f5ef',[-w*.03+(i-2.5)*spacing-centerX,1.355-bounds.min.y,frontZ+foreD*.40]);
+  p.add(g,'#f5f5ef',[-w*.03+(i-2.5)*spacing-centerX,1.355-bounds.min.y,frontZ+foreD*.84]);
  });
  // Roof drainage/parapet seams retain detail without photo textures.
  for(let j=0;j<6;j++)p.box(w*.31,.025,.1,w*.33,canopy+.63,-d*.4+j*d*.15,'#b0b8ad');
