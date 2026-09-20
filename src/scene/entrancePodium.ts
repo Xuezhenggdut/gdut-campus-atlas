@@ -1,6 +1,10 @@
 import * as T from 'three';
 import {Parts} from './geometry';
 
+// Include a canopy-width margin so nearby procedural trees cannot clip the slab.
+export const excludesPodiumTree=(x:number,z:number)=>
+ (x>=281&&x<=427&&z>=255&&z<=348)||(x>=337&&x<=442&&z>=332&&z<=371);
+
 /** Two visible levels: shaded parking below a raised pedestrian forecourt.
  * Dimensions are schematic; the supplied photograph establishes the section. */
 export function entrancePodium(p:Parts){
@@ -29,4 +33,11 @@ export function entrancePodium(p:Parts){
  }
  // The south landing meets the existing lawn-and-stair garden at z=363.
  for(const x of [349,389,430])p.cylinder(.42,deck-.55,x,(deck-.55)/2,356,'#c9c8bc',.42,10);
+ // Only two deliberately placed trees, rooted on the lower courtyard floor.
+ for(const [x,z] of [[368,288],[391,323]]){
+  p.cylinder(1.5,.18,x,.18,z,'#8c9b72',1.5,16);
+  p.cylinder(.24,8,x,4.2,z,'#82745e',.18,9);
+  const crown=new T.IcosahedronGeometry(2.7,1);crown.scale(1,1.1,1);
+  p.add(crown,'#78936a',[x,9,z]);
+ }
 }
