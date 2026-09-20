@@ -13,7 +13,7 @@ test('waterway ends south of the library west forecourt, leaving a broad dry app
 });
 test('library stairs and platform remain dry, and administration ground remains dry beside the open canal',()=>{
  for(let x=135;x<=254;x+=2)for(let z=44;z<=165;z+=2)assert.equal(wet(x,z),false,`library platform ${x},${z}`);
- for(const id of ['b-admin','b-comprehensive']){const [x,z]=toWorld(buildings.find(b=>b.id===id)!.position);assert.equal(wet(x,z),id==='b-comprehensive',id);}
+ for(const id of ['b-admin','b-comprehensive']){const [x,z]=toWorld(buildings.find(b=>b.id===id)!.position);assert.equal(wet(x,z),false,id);}
 });
 test('south canal remains connected beyond the outer ring',()=>{
  for(let z=350;z<=490;z+=2)assert(wet(302,z));

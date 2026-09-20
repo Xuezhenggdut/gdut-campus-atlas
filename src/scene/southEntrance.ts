@@ -34,31 +34,14 @@ export function makeEntranceOffice(b:Building,p:Parts){
  for(let j=0;j<=8;j++)for(const z of [-d*.62,d*.62])column(p,-w/2+j*w/8,z,h+5.1);
  // The front colonnade stands behind the three lawn slopes. The auditorium
  // is at its eastern end, not the object directly facing the central stairs.
- // The comprehensive-office wing joins engineering 1 on the same row.
+ // The comprehensive building ends at its own footprint.
  const [worldX]=toWorld(b.position);
- const engineering=buildings.find(v=>v.id==='b-engineering-1')!;
- const engineeringWest=toWorld(engineering.position)[0]-engineering.width/2;
- const extension=(b.id==='b-admin'?408:engineeringWest)-worldX;
+ const extension=b.id==='b-admin'?408-worldX:w/2+1;
  lattice(p,-w/2-1,extension,-d*.63,d*.63,h+5.8);
- const supports=[w/2+14,extension-13,extension].filter(x=>Math.abs(toWorld(b.position)[0]+x-335)>10);
+ const supports=(b.id==='b-admin'?[w/2+14,extension-13,extension]:[]).filter(x=>Math.abs(toWorld(b.position)[0]+x-335)>10);
  for(const x of supports)for(const z of [-d*.62,d*.62]){
   column(p,x,z,h+5.1);
   p.beam([x,h+4.3,z],[x-5,h+5.5,z],.27,metal);
- }
- if(b.id==='b-comprehensive'){
-  // Two open galleries continue into both buildings. The ground passage under
-  // them remains free at the campus drive and the eastern research street.
-  const start=coreW/2,end=extension+engineering.width*.05;
-  for(let f=1;f<5;f++){
-   const y=base+f*(h-base)/5;
-   for(const side of [-1,1]){
-    const z=side*coreD*.33;
-    p.box(end-start,.48,5,(start+end)/2,y,z,light);
-    rail(p,[start,y+.3,z+side*2.45],[end,y+.3,z+side*2.45]);
-    rail(p,[start,y+.3,z-side*2.45],[end,y+.3,z-side*2.45]);
-   }
-  }
-  for(const x of [310,352,374,engineeringWest])for(const z of [-d*.62,d*.62])column(p,x-worldX,z,h+5.1);
  }
  if(b.id==='b-admin'){
   // A forward roof strip continues to the right lawn edge, clear of the

@@ -64,16 +64,16 @@ test('lawn-facing tall colonnade continues east, with auditorium and inscription
  disposeTree(g);
 });
 
-test('comprehensive and engineering 1 form a continuous row above clear ground passages',()=>{
+test('comprehensive and engineering 1 remain separate across clear ground passages',()=>{
  const a=buildings.find(v=>v.id==='b-comprehensive')!,b=buildings.find(v=>v.id==='b-engineering-1')!;
  const [ax,az]=toWorld(a.position),[bx,bz]=toWorld(b.position);
  assert(Math.abs(az-bz)<.01,'connected buildings must share the same row');
  const g=makeBuilding(a);g.updateMatrixWorld(true);
  const ray=new T.Raycaster();
  // Gallery decks must physically reach both bodies, including over each road.
- for(let x=ax+a.width*.4;x<bx-b.width*.44;x+=2){
+ for(let x=ax+a.width/2+5;x<bx-b.width*.44;x+=2){
   ray.set(new T.Vector3(x,12,az+a.depth*.75*.33),new T.Vector3(0,-1,0));
-  const deck=ray.intersectObject(g,true)[0];assert(deck&&deck.point.y>7,`gap in gallery at ${x}`);
+  assert.equal(ray.intersectObject(g,true).length,0,`unwanted gallery at ${x}`);
  }
  // Sample both road widths at vehicle height, including the column rows.
  for(const [cx,width] of [[335,16],[397,11]])for(let x=cx-width/2;x<=cx+width/2;x+=.5){
