@@ -138,9 +138,10 @@ function sports(b:Building,p:Parts,group:T.Group){const {width:w,depth:d}=b;
  if(b.id==='b-library-football'){football(b,p,group);return;}
  if(b.id==='b-central-track'){makeAthleticsTrack(b,p,group);return;}
  if(b.id==='b-courts-library'){
-  p.box(w,.5,d,0,.3,0,'#7c9599');
-  for(let i=0;i<3;i++)for(let j=0;j<2;j++){
-   const x=-w/2+(i+.5)*w/3,z=-d/2+(j+.5)*d/2,cw=w/3*.9,cd=d/2*.84;
+  // The supplied map shows 2 / 4 / 3 courts, with stepped western corners.
+  for(const [i,j] of [[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[1,2],[2,2],[3,2]]){
+   const x=-w/2+(i+.5)*w/4,z=-d/2+(j+.5)*d/3,cw=w/4*.9,cd=d/3*.84;
+   p.box(w/4,.5,d/3,x,.3,z,'#7c9599');
    p.box(cw,.2,cd,x,.7,z,'#657e91');
    for(const sign of [-1,1]){p.box(cw,.08,.14,x,.86,z+sign*cd/2,ivory);p.box(.14,.08,cd,x+sign*cw/2,.86,z,ivory);}
    p.box(cw,.08,.14,x,.86,z,ivory);
@@ -156,7 +157,19 @@ function sports(b:Building,p:Parts,group:T.Group){const {width:w,depth:d}=b;
  if(b.kind==='field'){const isCricket=b.id==='b-cricket';const outer=isCricket?new T.Shape():trackShape(w,d);if(isCricket)outer.absellipse(0,0,w/2,d/2,0,Math.PI*2,false,0);p.add(new T.ShapeGeometry(outer,48),isCricket?'#7d9e64':'#b87965',[0,.8,0],[-Math.PI/2,0,0]);const inner=isCricket?new T.Shape():trackShape(w*.78,d*.68);if(isCricket)inner.absellipse(0,0,w*.39,d*.34,0,Math.PI*2,false,0);p.add(new T.ShapeGeometry(inner,48),'#83a373',[0,.95,0],[-Math.PI/2,0,0]);for(let i=0;i<8&&!isCricket;i++){const points=trackPoints(w-1.9-i*1.9,d-1.9-i*1.9);group.add(pathMesh(points,.25,'#eadccb',1.01));}p.box(w*.54,.1,.3,0,1.1,-d*.24,ivory);p.box(w*.54,.1,.3,0,1.1,d*.24,ivory);for(const x of [-w*.27,w*.27,0])p.box(.3,.1,d*.48,x,1.1,0,ivory);
  const circle=Array.from({length:49},(_,i)=>[Math.cos(i*Math.PI/24)*d*.11,Math.sin(i*Math.PI/24)*d*.11] as [number,number]);group.add(pathMesh(circle,.16,ivory,1.12));for(const side of [-1,1]){p.box(.18,.1,d*.27,side*w*.18,1.12,0,ivory);for(const z of [-d*.135,d*.135])p.box(w*.09,.1,.18,side*w*.225,1.12,z,ivory);p.beam([side*w*.27,1.15,-d*.06],[side*w*.27,3.2,-d*.06],.15,ivory);p.beam([side*w*.27,1.15,d*.06],[side*w*.27,3.2,d*.06],.15,ivory);p.box(.16,.16,d*.12,side*w*.27,3.2,0,ivory);}
  
- }else{p.box(w,.5,d,0,.3,0,'#8c9d8a');const cols=3,rows=2;for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){const x=-w/2+(i+.5)*w/cols,z=-d/2+(j+.5)*d/rows,cw=w/cols*.86,cd=d/rows*.86;p.box(cw,.3,cd,x,.7,z,b.id==='b-tennis'?'#8baf91':'#7298a1');for(const k of [-1,1]){p.box(cw,.1,.28,x,1,z+k*cd*.43,ivory);p.box(.28,.1,cd*.86,x+k*cw*.44,1,z,ivory);}p.box(.25,.1,cd*.86,x,1,z,ivory);}}
+ }else{p.box(w,.5,d,0,.3,0,'#8c9d8a');const cols=3,rows=b.id==='b-tennis'?3:2;for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){
+  const x=-w/2+(i+.5)*w/cols,z=-d/2+(j+.5)*d/rows,cw=w/cols*.86,cd=d/rows*.86;
+  p.box(cw,.3,cd,x,.7,z,b.id==='b-tennis'?'#8baf91':'#7298a1');
+  for(const k of [-1,1]){
+   p.box(cw*.88,.07,.14,x,1,z+k*cd*.43,ivory);p.box(.14,.07,cd*.86,x+k*cw*.44,1,z,ivory);
+   if(b.id==='b-tennis'){
+    p.box(.12,.07,cd*.86,x+k*cw*.33,1,z,ivory);p.box(cw*.66,.07,.12,x,1,z+k*cd*.23,ivory);
+    p.box(.10,.9,.10,x+k*cw*.46,1.4,z,ivory);
+   }
+  }
+  if(b.id==='b-tennis'){p.box(.12,.07,cd*.46,x,1,z,ivory);p.box(cw*.92,.55,.05,x,1.35,z,'#b8c8bc');p.box(cw*.94,.06,.08,x,1.66,z,ivory);}
+  else p.box(.25,.1,cd*.86,x,1,z,ivory);
+ }}
 }
 export function makeBuilding(b:Building,detailed=true){const group=new T.Group();group.name=b.id;group.userData={buildingId:b.id,placeIds:b.placeIds,heightBasis:b.heightBasis};const [x,z]=toWorld(b.position);group.position.set(x,1,z);group.rotation.y=b.rotation;
  if(b.kind==='lake')return group;

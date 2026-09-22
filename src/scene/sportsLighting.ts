@@ -11,7 +11,9 @@ export function sportsMastSites(){
   return [[-1,-1],[-1,1],[1,-1],[1,1]].map(([sx,sz],i)=>{
    // The cricket oval is squeezed between two perimeter roads on the west;
    // place its masts beyond the curved end stands, not at the road corners.
-   const u=sx*(id==='b-cricket'?b.width*.32:id==='b-tennis'?b.width*.20:id==='b-central-track'?b.width*.34:b.width/2+setback),v=sz*(b.depth/2+setback);
+   // Put the revised court lights along the north/south margins, clear of
+   // the diagonal road and the adjoining football pitch.
+   const u=sx*(id==='b-cricket'?b.width*.32:id==='b-tennis'?b.width*.20:id==='b-courts-south'?b.width*.38:id==='b-courts-library'?b.width*.30:id==='b-central-track'?b.width*.34:b.width/2+setback),v=sz*(b.depth/2+setback);
    return {id,index:i,x:x+u*c+v*s,z:z-u*s+v*c,height:court?18:id==='b-cricket'?36:31,court,target:new T.Vector3(x,1.7,z),active:i===0||i===3};
   });
  });

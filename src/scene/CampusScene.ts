@@ -57,7 +57,7 @@ export class CampusScene {
  promenades.forEach(p=>this.terrain.add(pathMesh(p.map(toWorld),3.4,'#e3dbc5',.5)));
  // Shared footprints keep library paving and vegetation clear of the avenues.
  this.terrain.add(flatPolygon(libraryEastForecourt.map(toWorld),'#ded8c7',.53));
- for(const gate of places.filter(p=>p.id.includes('gate')||p.id==='academic-nw')){const [x,z]=toWorld(gate.position);const g=new T.Group();for(let i=0;i<7;i++){const stripe=new T.Mesh(new T.BoxGeometry(1.1,.08,9),new T.MeshStandardMaterial({color:'#f0ecdc'}));stripe.position.x=(i-3)*2.2;g.add(stripe);}g.position.set(x,.7,z);g.rotation.y=.39;this.terrain.add(g);}
+ for(const gate of places.filter(p=>p.id.includes('gate')||p.id==='academic-nw')){const [x,z]=toWorld(gate.position);const g=new T.Group();for(let i=0;i<7;i++){const stripe=new T.Mesh(new T.BoxGeometry(1.1,.08,9),new T.MeshStandardMaterial({color:'#f0ecdc'}));stripe.position.x=(i-3)*2.2;g.add(stripe);}g.position.set(x,.7,z);g.rotation.y=gate.id==='east-gate'?Math.PI/2:gate.id==='academic-nw'?0:.39;this.terrain.add(g);}
  const merged=mergeScene(this.terrain);disposeTree(this.terrain);this.terrain.clear();this.terrain.add(merged);merged.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
  }
  private buildBasic(){for(const area of Object.keys(areas) as Area[]){const group=new T.Group();group.name='district-'+area;this.root.add(group);this.builtGroups.set(area,group);}for(const b of buildings){if(b.kind==='lake')continue;const p=places.find(p=>p.id===b.placeIds[0])!;const [x,z]=toWorld(b.position);

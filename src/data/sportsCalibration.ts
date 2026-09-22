@@ -21,4 +21,23 @@ export function applySportsCalibration(buildings:Building[],places:Place[]){
   if(id==='library'){b.height=34;b.heightBasis='正面及航拍照片比例校准；高度为沙盘单位，非实测标高。';}
   for(const p of places.filter(p=>b.placeIds.includes(p.id))){p.position=b.position;if(!p.sourceIds.includes('planning-20241008'))p.sourceIds.push('planning-20241008');}
  }
+ // Supplied ordinary-map crops correct the local court/road relationships.
+ // Keep the north-south road straight: both tennis and volleyball are west
+ // of it. The library courts form a stepped group beside the football pitch.
+ for(const [id,x,z,w,d] of [
+  ['courts-west',-250,37.775154929577525,60,36],
+  ['courts-library',95.05,97.5,45,65],
+ ] as const){
+  const b=buildings.find(b=>b.id==='b-'+id)!;
+  Object.assign(b,{position:unprojectMap([x,z]),width:w,depth:d,footprint:[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]]});
+  for(const p of places.filter(p=>b.placeIds.includes(p.id)))p.position=b.position;
+ }
+ const gate=buildings.find(b=>b.id==='b-east-gate')!;
+ gate.position=unprojectMap([689,33]);gate.rotation=Math.PI/2;
+ for(const p of places.filter(p=>gate.placeIds.includes(p.id)))p.position=gate.position;
+ // The legacy illustration coordinate put the northwest gate on a tennis
+ // court. Anchor the schematic entrance to the road junction instead.
+ const northwest=buildings.find(b=>b.id==='b-academic-nw')!;
+ northwest.position=unprojectMap([-205,-138]);northwest.rotation=0;
+ for(const p of places.filter(p=>northwest.placeIds.includes(p.id)))p.position=northwest.position;
 }
