@@ -5,10 +5,10 @@ import {buildings} from '../src/data/campus';
 import {makeBuilding} from '../src/scene/models';
 import {disposeTree} from '../src/scene/geometry';
 
-test('library stairs retain a continuous thin flight with traversable space beneath all four approaches',()=>{
+test('library has open stairs on three approaches and a stair-free Chuanggu-facing north side',()=>{
  const b=buildings.find(b=>b.id==='b-library')!,g=makeBuilding(b);
  g.position.set(0,0,0);g.rotation.set(0,0,0);g.updateMatrixWorld(true);
- for(const side of [0,1,2,3]){
+ for(const side of [0,1,3]){
   const angle=side*Math.PI/2,dep=(side%2?b.width:b.depth)/2;
   const centers=side%2?[0]:[-b.width*.29,b.width*.29];
   const point=(u:number,y:number,v:number)=>new T.Vector3(Math.cos(angle)*u+Math.sin(angle)*v,y,-Math.sin(angle)*u+Math.cos(angle)*v);
@@ -24,6 +24,12 @@ test('library stairs retain a continuous thin flight with traversable space bene
    const landing=new T.Raycaster(point(center+1,9.5,dep+1),new T.Vector3(0,-1,0)).intersectObject(g,true)[0];
    assert(landing&&Math.abs(landing.point.y-8.5)<.01,'flight joins a raised upper landing');
   }
+ }
+ // The former two northern flights, landings, supports and rails must all be
+ // absent; the low continuous base paving may remain.
+ for(const x of [-b.width*.29,0,b.width*.29])for(const v of [3,6,11,17]){
+  const hit=new T.Raycaster(new T.Vector3(x,9.5,-b.depth/2-v),new T.Vector3(0,-1,0)).intersectObject(g,true)[0];
+  assert((hit?.point.y??0)<=1.11,'Chuanggu-facing side must have no exterior stair or raised landing');
  }
  disposeTree(g);
 });

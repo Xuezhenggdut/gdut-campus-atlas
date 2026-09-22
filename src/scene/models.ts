@@ -90,11 +90,11 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
   for(const dz of [-1.4,1.4])p.box(.07,3.25,.07,w/2+1.05,base+step+1.95,3.2-i*3.2+dz,'#dedfd5');
   for(const dy of [0,3.2])p.box(.07,.07,2.8,w/2+1.05,base+step+.35+dy,3.2-i*3.2,'#dedfd5');
  }
- // All visible approaches are raised flights with open space beneath.
+ // East, south and west approaches have open raised flights. The north face
+ // towards the Gongda Chuanggu stone has no exterior stairs (user correction).
  libraryStairs(p,w,d,1,[-d*.31,0,d*.31],d*.25);
  libraryStairs(p,w,d,0,[-w*.29,w*.29],w*.26);
  libraryStairs(p,w,d,3,[-d*.30,0,d*.30],d*.23);
- libraryStairs(p,w,d,2,[-w*.29,w*.29],w*.26);
 }
 function colonnade(p:Parts,w:number,d:number,h:number){for(let x=-w/2;x<=w/2+.1;x+=w/8){p.box(.85,h,.85,x,h/2,d/2+1.2,ivory);p.box(.85,h,.85,x,h/2,-d/2-1.2,ivory);}p.box(w+2,1.2,d+4,0,h,0,ivory);}
 function academic(b:Building,p:Parts){if(/^b-(innovation|truth|virtue)-/.test(b.id)){technologyBuilding(b,p);return;}if(b.id==='b-structure-lab'){structureBuilding(b,p);return;}if(b.kind==='engineering'||/^b-lab-[1-4]$/.test(b.id)){researchBuilding(b,p);return;}const {width:w,depth:d,height:h}=b; const open=b.kind==='teaching';
