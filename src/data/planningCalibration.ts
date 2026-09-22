@@ -87,4 +87,7 @@ export const planningResidentialRoads=[
  road('west','西区宿舍东纵路',7,[[790,30],[790,510],[790,570]]),
  road('west','西区五六栋横路',6,[[565,437],[790,437]]),
  road('west','西三食堂南侧路',7,[[565,570],[790,570],[970,570],[985,355]]),
+ // Trace only the visible loop around dorm 15. The northern service-centre
+ // precinct has a different building fit and must not get an invented through-road.
+ {name:'西区十五栋北侧连接路',width:6,points:([[460.6666666667,270.3333333333],[460.6666666667,260],[464,257],[469,256],[484,256],[490,258],[491.6666666667,270.3333333333]] as Point[]).map(p=>unprojectMap(pdfToWorld(p)))},
 ];

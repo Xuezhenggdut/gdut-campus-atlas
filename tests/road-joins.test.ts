@@ -14,8 +14,21 @@ test('source-confirmed academic and residential road ends meet their current jun
   ['西区广场西侧路',0,'西区宿舍北横路'],['西区广场西侧路',-1,'西区东西主路'],
   ['西区宿舍中横路',-1,'西区广场西侧路'],['挑战路',0,'东苑一横路'],
   ['国医西路',-1,'大学城中环西路'],
+  ['教学楼组团横向道路',-1,'知行大道'],
+  ['教学区东北侧通道',0,'教学区—东区北联络路'],
+  ['教学区东北侧通道',-1,'教学楼组团横向道路'],
+  ['东侧环教路',-1,'研学二路'],
+  ['西区十五栋北侧连接路',0,'西区宿舍北横路'],['西区十五栋北侧连接路',-1,'西区宿舍西纵路'],
  ] as const){const road=roads.find(r=>r.name===from)!;assert(distance(toWorld(road.points.at(end)!),to)<1e-7,`${from} -> ${to}`);}
  for(const road of roads.filter(r=>r.name==='东区宿舍横路'))assert(distance(toWorld(road.points.at(-1)!),'东区宿舍东侧路')<1e-7);
+});
+
+test('Qiushi remains a single straight avenue through all five research cross streets',()=>{
+ const avenue=roads.find(r=>r.name==='求是路')!.points.map(toWorld);
+ assert(avenue.every(p=>Math.abs(p[0]-avenue[0][0])<1e-7));
+ const crosses=roads.filter(r=>r.name==='研学二路'||r.name==='科研楼组团横向道路');
+ assert.equal(crosses.length,5);
+ for(const cross of crosses)assert(distance(toWorld(cross.points[0]),'求是路')<1e-7);
 });
 
 test('sports fork shares an exact node and narrows without narrowing the southern lake road',()=>{
