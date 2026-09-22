@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {Parts} from './geometry';
+import {registerLakePoint} from '../data/waterRegistration';
 
 // Decorative groups on open water, away from the island and entrance platforms.
 export function makeLakeDucks(){
@@ -15,7 +16,7 @@ export function makeLakeDucks(){
   oval(.55,.5,.48,1.12,1.85,0,'#fffdf5');
   oval(.44,.13,.27,1.7,1.75,0,'#e4a33e');
   for(const side of [-1,1])oval(.08,.08,.04,1.3,1.98,side*.43,'#293632');
-  const duck=p.finish();duck.position.set(x,.14,z);duck.rotation.y=heading;flock.add(duck);
+  const duck=p.finish(),q=registerLakePoint([x,z]);duck.position.set(q[0],.14,q[1]);duck.rotation.y=heading;flock.add(duck);
  }
  return flock;
 }

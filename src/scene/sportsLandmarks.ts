@@ -89,14 +89,16 @@ export function makeGym(b:Building,p:Parts){
  for(let i=0;i<=8;i++){const f=i/8,xx=rw/2*(1-f*.5),zz=rd/2*(1-f*.58),yy=low+(high-low)*f+.08;line(p,[[cx-xx,yy,cz-zz],[cx-xx,yy,cz+zz],[cx+xx,yy,cz+zz],[cx+xx,yy,cz-zz],[cx-xx,yy,cz-zz]],.17,white);}
  // Separate blue and red open courts at the back/side of the raised deck.
  for(const [z,col] of [[-d*.37,'#68858e'],[-d*.02,'#b96f55']] as const){deckCourt(p,-w*.54,z,w*.20,d*.29,col,3.55);for(const x of [-w*.65,-w*.43])p.box(.16,2.8,.16,x,5,z,steel);}
+ // East concourse links the hall to the west stand; pools occupy its southern side.
+ p.box(w*.54,.75,d*.90,w*.54,3,-d*.18,white);
  // Pools run north-south, side by side east-west. Lane ropes follow that long axis.
- for(const x of [-w*.27,w*.01]){
-  const z=d*.49,pw=w*.24,pd=d*.59;
+ for(const x of [w*.30,w*.63]){
+  const z=d*.62,pw=w*.23,pd=d*.54;
   p.box(pw+2,.45,pd+2,x,3.48,z,white);p.box(pw,.12,pd,x,3.76,z,water);
   for(let lane=1;lane<7;lane++)p.box(.11,.035,pd*.97,x-pw/2+lane*pw/7,3.84,z,'#e3ebcd');
   for(const side of [-1,1])for(let lane=1;lane<7;lane++)p.box(.45,.18,.48,x-pw/2+lane*pw/7,3.84,z+side*(pd/2+.4),white);
  }
- p.box(w*.60,.75,d*.25,-w*.13,3,d*.74,white);
+ p.box(w*.64,.75,d*.66,w*.46,3,d*.62,white);
  // Skylight grid and low stairs on the open concourse, visible in the PDF.
  for(let i=0;i<5;i++)for(let j=0;j<4;j++)p.box(1.1,.3,1.1,w*.39-i*3.1,3.75,-d*.36+j*5.5,'#7eabbb');
  for(const z of [-d*.48,-d*.08,d*.18])p.box(7,1.1,2.7,w*.35,4.0,z,slab);

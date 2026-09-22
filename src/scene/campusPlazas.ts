@@ -17,9 +17,9 @@ export function campusPlaza(b:Building,p:Parts,group:T.Group){
  if(b.id==='b-diligence-square'){
   // Lines lie on the paving; no raised cylinder or monument exists here.
   for(let i=1;i<=6;i++){
-   const radius=5+i*6,points:[number,number][]=[];let run:[number,number][]=[];
+   const radius=(2+i*2)*Math.min(1,w/32),points:[number,number][]=[];let run:[number,number][]=[];
    for(let j=0;j<=160;j++){
-    const a=j*Math.PI*2/160,x=Math.cos(a)*radius,z=-d*.2+Math.sin(a)*radius;
+    const a=j*Math.PI*2/160,x=Math.cos(a)*radius,z=-d*.15+Math.sin(a)*radius;
     if(Math.abs(x)<w/2-.8&&Math.abs(z)<d/2-.8)run.push([x,z]);else if(run.length){if(run.length>1)group.add(pathMesh(run,.34,'#a9a394',.64));run=[];}
    }points.push(...run);if(points.length>1)group.add(pathMesh(points,.34,'#a9a394',.64));
   }

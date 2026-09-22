@@ -8,11 +8,16 @@ function rail(p:Parts,x0:number,x1:number,z:number,y:number){
 }
 export function studentDorm(b:Building,p:Parts){
  const {width:w,depth:d,height:h}=b,floors=b.floors,step=h/floors;
+ // The 2024 approved plan explicitly identifies the built student dorms as
+ // seven-storey buildings with an open ground floor. Planned west 17 is separate.
+ const openGround=b.id!=='b-west-dorm-17',base=openGround?step:0;
  const interior={x:0,z:0,width:w*.62,depth:d*.28},wallVoid={x:0,z:0,width:w*.70,depth:d*.43};
- courtyardMass(p,w*.94,d*.83,[wallVoid],h,0,b.color);
+ courtyardMass(p,w*.94,d*.83,[wallVoid],h-base,base,b.color);
  for(let f=0;f<=floors;f++){
   const y=f*step;
   courtyardMass(p,w+1.1,d+2.1,[interior],.34,y,slab);
+  // Leave the pedestrian level open; the full-height columns below support it.
+  if(openGround&&f===0)continue;
   for(const side of [-1,1]){
    rail(p,-w*.5,w*.5,side*(d/2+1),y+.2);
    rail(p,-interior.width/2,interior.width/2,side*interior.depth/2,y+.2);

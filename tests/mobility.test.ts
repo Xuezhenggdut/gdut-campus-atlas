@@ -1,3 +1,4 @@
+import {bridgeX,bridgeZ} from '../src/scene/roadNetwork';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
@@ -5,14 +6,14 @@ import {CampusMobility,mobilityActors,mobilityRoute,routePose} from '../src/scen
 import {disposeTree} from '../src/scene/geometry';
 
 test('cars follow both bridge ramps while Tiaozhan traffic remains below',()=>{
- const bridge=mobilityRoute('大学城中环西路',25,[[0,-93],[200,-93]]);
+ const bridge=mobilityRoute('大学城中环西路',25,[[bridgeX-97,bridgeZ],[bridgeX+103,bridgeZ]]);
  for(const direction of [-1,1]){
   assert(Math.abs(routePose(bridge,97,direction,4.4).y-7.56)<.001);
   assert(Math.abs(routePose(bridge,10,direction,4.4).y-.46)<.001);
   assert(routePose(bridge,44,direction,4.4).pitch*direction<0);
   assert(routePose(bridge,150,direction,4.4).pitch*direction>0);
  }
- const below=mobilityRoute('挑战路',10,[[97,-200],[97,45]]);
+ const below=mobilityRoute('挑战路',10,[[bridgeX,bridgeZ-107],[bridgeX,bridgeZ+138]]);
  assert(Math.abs(routePose(below,107,1,1.65).y-.46)<.001);
  const m=new CampusMobility(),mesh=m.group.getObjectByName('mobility-car')!.children[0] as T.InstancedMesh;
  for(const [i,a] of mobilityActors().cars.entries()){

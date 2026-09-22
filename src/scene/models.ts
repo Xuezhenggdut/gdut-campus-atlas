@@ -5,6 +5,8 @@ import {makeEntranceOffice,makeSouthGate} from './southEntrance';
 import {detailedDining,detailedTeaching,conference} from './pdfDetails';
 import * as T from 'three';
 import {makeCulture} from './culture';
+import libraryInscription from '../data/library-inscription.json';
+import {makeOutdoorCourts} from './outdoorCourts';
 import {researchBuilding} from './researchBuildings';
 import {campusPlaza} from './campusPlazas';
 import {Parts,flatPolygon,pathMesh} from './geometry';
@@ -16,18 +18,18 @@ function windows(p:Parts,w:number,d:number,h:number,floors:number,color=glass){c
 // Rows below run from roof down. Opening placement remains an interpretation.
 const libraryFaces=[
  ['001110011100','111110011100','111100111111','110011111001','111110011111','001111100111'],
- ['001111001100','001100111100','111100111111','110011001111','111111001100','001100111100'],
+ ['001111111111','110010011001','111110011111','110010011001','111110011111','001111111001'],
  ['111100111100','001100111111','111111001100','111001111111','001111100111','111100111100'],
  ['001111001111','111100001111','001111111100','111100111111','111111001100','001100111111']
 ];
-function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=14,body=h-base,step=body/6;
+function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=10,body=h-base,step=body/6;
  p.box(w+19,1.1,d+19,0,.55,0,'#c6c4b8');
  p.box(w*.76,base-2,d*.72,0,base/2,0,'#4e6263');
  p.box(w*.90,body-1,d*.90,0,base+body/2,0,'#253c40');
  for(const x of [-w*.46,-w*.23,0,w*.23,w*.46])for(const z of [-d*.46,d*.46])p.box(1.25,base+2,1.25,x,(base+2)/2,z,'#e4e2d9');
  for(const z of [-d*.23,0,d*.23])for(const x of [-w*.46,w*.46])p.box(1.25,base+2,1.25,x,(base+2)/2,z,'#e4e2d9');
  const accents=['#d6a04c','#719783','#6a9fae','#dfdacf'];
- libraryFaces.forEach((rows,side)=>{const fw=side%2?d:w,dep=(side%2?w:d)/2,cw=fw/12,angle=side*Math.PI/2;
+ libraryFaces.forEach((rows,side)=>{const fw=side%2?d:w,dep=(side%2?w:d)/2,cw=fw/12,angle=side*Math.PI/2,front=side===1;
   const box=(width:number,height:number,depth:number,u:number,y:number,v:number,color:string)=>p.box(width,height,depth,Math.cos(angle)*u+Math.sin(angle)*v,y,-Math.sin(angle)*u+Math.cos(angle)*v,color,angle);
   rows.forEach((row,r)=>{const y=h-(r+.5)*step;
    for(let c=0;c<12;c++)if(row[c]==='1'){
@@ -36,12 +38,12 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
     // with visible floor edges, mullions and interior light behind the slats.
     for(let j=0;j<3;j++){
      const x=u-cw/2+(j+.5)*cw/3,bright=(c*7+r*3+j+side)%7>1;
-     box(cw/3-.15,step-.65,.12,x,y,dep-.38,bright?'#60777b':'#435d64');
+     box(cw/3-.15,step-.65,.12,x,y,dep-.38,front?(bright?'#647f8b':'#4b6675'):(bright?'#60777b':'#435d64'));
      box(cw/3*.68,.10,.14,x,y+step*.28,dep-.20,'#99aaa5');
     }
     box(cw-.09,.32,.85,u,y-step/2+.16,dep-.02,'#727d7d');
     for(let j=0;j<=3;j++)box(.09,step-.1,.24,u-cw/2+j*cw/3,y,dep+.20,'#647172');
-    for(let j=0;j<13;j++)box(cw-.12,.065,.22,u,y-step*.44+j*step*.88/12,dep+.32,'#727d7d');
+    const slats=front?8:13;for(let j=0;j<slats;j++)box(cw-.12,.065,.22,u,y-step*.44+j*step*.88/(slats-1),dep+.32,front?'#899596':'#727d7d');
    }
    for(let c=0;c<12;){if(row[c]!=='0'){c++;continue;}const start=c;while(c<12&&row[c]==='0')c++;const count=c-start,u=-fw/2+(start+count/2)*cw,len=count*cw;
     box(len-.2,step-.3,.22,u,y,dep-3.5,'#354d50');
@@ -51,7 +53,7 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
      box(.12,step-.4,.12,x,y,dep-3.30,'#647172');
     }
     box(len+.2,.4,4.2,u,y-step/2+.3,dep-1.1,'#c9c9c0');
-    const col=accents[(r+side)%accents.length];box(len,1.15,.25,u,y-step/2+1.05,dep+.7,col);
+    const central=front&&start===5&&count===2;const col=central?(['#d6a04c','#719783','#719783','#d6a04c','#dfdacf','#dfdacf'][r]):accents[(r+side)%accents.length];box(len,1.15,.25,u,y-step/2+1.05,dep+.7,col);
     for(let rail=0;rail<3;rail++)box(len,.11,.15,u,y-step/2+1.65+rail*.35,dep+.9,'#dedfd5');
    }
   });
@@ -74,7 +76,26 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
  for(let i=-8;i<=8;i++)for(let j=-8;j<=8;j++){if(Math.abs(i)<6&&Math.abs(j)<6)continue;p.box(w/24,.35,d/26,i*w/22,h+.75,j*d/22,'#b6b6a8');}
  for(let i=0;i<12;i++){const x=-w*.44+(i+.5)*w*.88/12;for(const side of [-1,1])p.box(.35,3,d*.10,x,h+1.7,side*d*.41,accents[i%4]);}
  const stairs=(side:number,centers:number[],span:number)=>{const angle=side*Math.PI/2,dep=side%2?w/2:d/2;for(const center of centers){for(let i=0;i<12;i++){const u=center,v=dep+17-i*1.3;p.box(span,.55,1.6,Math.cos(angle)*u+Math.sin(angle)*v,.65+i*.65,-Math.sin(angle)*u+Math.cos(angle)*v,'#d4d2c6',angle);}for(const sign of [-1,1]){const u=center+sign*span*.47;const a:[number,number,number]=[Math.cos(angle)*u+Math.sin(angle)*(dep+17),1.7,-Math.sin(angle)*u+Math.cos(angle)*(dep+17)];const q:[number,number,number]=[Math.cos(angle)*u+Math.sin(angle)*(dep+2),9.5,-Math.sin(angle)*u+Math.cos(angle)*(dep+2)];p.beam(a,q,.17,'#eeeeE4');}}};
- stairs(1,[-d*.28,0,d*.28],d*.18);stairs(0,[-w*.29,w*.29],w*.26);stairs(3,[0],d*.31);
+ // White entrance lettering sits on the central recessed balcony railing.
+ for(const [i,ch] of [...'图书馆'].entries()){
+  const path=new T.ShapePath();
+  for(const [op,...args] of libraryInscription.glyphs[ch as keyof typeof libraryInscription.glyphs]){
+   const a=args as number[];
+   if(op==='M')path.moveTo(a[0],a[1]);if(op==='L')path.lineTo(a[0],a[1]);
+   if(op==='Q')path.quadraticCurveTo(a[0],a[1],a[2],a[3]);if(op==='C')path.bezierCurveTo(a[0],a[1],a[2],a[3],a[4],a[5]);if(op==='Z')path.currentPath?.closePath();
+  }
+  const letter=new T.ShapeGeometry(path.toShapes(false));letter.scale(2.1/libraryInscription.em,2.1/libraryInscription.em,1);
+  p.add(letter,'#f0f0e6',[w/2+1.1,base+step+.9,3.5-i*2.5],[0,Math.PI/2,0]);
+ }
+ // Three broad eastern stair flights and a centre handrail match the front photo.
+ for(const center of [-d*.31,0,d*.31]){
+  for(const offset of [-d*.1175,0,d*.1175]){
+   const u=center+offset;
+   for(const rail of [0,.42,.84])p.beam([w/2+17,1.2+rail,-u],[w/2+2,9+rail,-u],.10,'#eeeee4');
+   for(let j=0;j<=6;j++){const t=j/6;p.box(.1,1.15,.1,w/2+17-15*t,1.4+7.8*t,-u,'#eeeee4');}
+  }
+ }
+ stairs(1,[-d*.31,0,d*.31],d*.25);stairs(0,[-w*.29,w*.29],w*.26);stairs(3,[0],d*.31);
 }
 function colonnade(p:Parts,w:number,d:number,h:number){for(let x=-w/2;x<=w/2+.1;x+=w/8){p.box(.85,h,.85,x,h/2,d/2+1.2,ivory);p.box(.85,h,.85,x,h/2,-d/2-1.2,ivory);}p.box(w+2,1.2,d+4,0,h,0,ivory);}
 function academic(b:Building,p:Parts){if(/^b-(innovation|truth|virtue)-/.test(b.id)){technologyBuilding(b,p);return;}if(b.id==='b-structure-lab'){structureBuilding(b,p);return;}if(b.kind==='engineering'||/^b-lab-[1-4]$/.test(b.id)){researchBuilding(b,p);return;}const {width:w,depth:d,height:h}=b; const open=b.kind==='teaching';
@@ -114,6 +135,7 @@ function football(b:Building,p:Parts,group:T.Group){
  }
 }
 function sports(b:Building,p:Parts,group:T.Group){const {width:w,depth:d}=b;
+ if(b.id==='b-courts-west'||b.id==='b-courts-south'){makeOutdoorCourts(b,p,group);return;}
  if(b.id==='b-library-football'){football(b,p,group);return;}
  if(b.id==='b-courts-library'){
   p.box(w,.5,d,0,.3,0,'#7c9599');

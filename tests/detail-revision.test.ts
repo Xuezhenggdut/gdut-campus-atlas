@@ -1,3 +1,4 @@
+import {bridgeX,bridgeZ} from '../src/scene/roadNetwork';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
@@ -17,21 +18,23 @@ test('research twin courtyards, innovation A atrium and student dorm court are a
 });
 test('Tiaozhan Road passes under Guangong bridge while deleted west connections stay separated',()=>{
  const g=makeRoadNetwork();g.updateMatrixWorld(true);
- const ray=new T.Raycaster(new T.Vector3(97,100,-92.885),new T.Vector3(0,-1,0));const hits=ray.intersectObject(g,true);
+ const ray=new T.Raycaster(new T.Vector3(bridgeX,100,bridgeZ),new T.Vector3(0,-1,0));const hits=ray.intersectObject(g,true);
  assert(hits.some(h=>h.point.y<.6));assert(hits.some(h=>h.point.y>7));
  const passage=roads.find(r=>r.name==='挑战路')!.points.map(toWorld);
- assert(passage[0][1]<-200&&passage.at(-1)![1]>0);
- const forward=new T.Raycaster(new T.Vector3(97,3,-120),new T.Vector3(0,0,1),0,155);assert.equal(forward.intersectObject(g,true).length,0);
- for(const [name,z] of [['体育馆—网球场连接路',-95]] as const){
-  for(const road of roads.filter(r=>r.name===name)){const ys=road.points.map(toWorld).map(p=>p[1]);assert(Math.max(...ys)<z-20||Math.min(...ys)>z+20);}
- }
+ assert(passage[0][1]<-200&&passage.at(-1)![1]>bridgeZ+50);
+ const forward=new T.Raycaster(new T.Vector3(bridgeX,3,bridgeZ-25),new T.Vector3(0,0,1),0,155);assert.equal(forward.intersectObject(g,true).length,0);
+ // The gym connector remains south of the registered public road.
+ const connector=roads.find(r=>r.name==='体育馆—网球场连接路')!;
+ assert(connector.points.map(toWorld).every(p=>p[0]<bridgeX-100));
  disposeTree(g);
 });
 test('Zhixing west extension joins south-one gate and the football-side ring road',()=>{
  const road=roads.find(r=>r.name==='知行大道（南1门段）')!,p=road.points.map(toWorld),gate=toWorld(buildings.find(b=>b.id==='b-south-one-gate')!.position);
  assert(gate[0]>p[0][0]+30);
  assert(p.some(q=>Math.hypot(q[0]-gate[0],q[1]-gate[1])<.01));
- const end=p.at(-1)!;assert(Math.abs(end[0]+35)<.01);assert(end[1]>=115&&end[1]<=236);
+ const end=p.at(-1)!,ring=roads.find(r=>r.name==='环教路')!.points.map(toWorld);
+ const gap=Math.min(...ring.slice(1).map((b,i)=>{const a=ring[i],dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((end[0]-a[0])*dx+(end[1]-a[1])*dz)/(dx*dx+dz*dz)));return Math.hypot(end[0]-a[0]-t*dx,end[1]-a[1]-t*dz);}));
+ assert(gap<1e-7,'source-confirmed junction must meet the current ring, not its old coordinates');
 });
 
 test('gym and tennis courts are separated by a continuous campus road',()=>{
@@ -47,7 +50,7 @@ test('gym and tennis courts are separated by a continuous campus road',()=>{
  assert.ok(south.some(p=>Math.abs(p[1]-points.at(-1)![1])<1));
  const north=roads.find(r=>r.name==='环教北路')!.points.map(toWorld);
  assert.ok(north.some(p=>Math.hypot(p[0]-points[0][0],p[1]-points[0][1])<.01),'campus connector joins restored Huanjiao North Road');
- assert.ok(north.some(p=>Math.abs(p[0]-97)<.01),'north road continues to Tiaozhan Road');
+ assert.ok(north.some(p=>Math.abs(p[0]-187)<.01),'north road continues to Tiaozhan Road');
 });
 
 test('east dorms and dining hall retain a green setback north of the public middle ring',()=>{
@@ -70,7 +73,11 @@ test('east dorms and dining hall retain a green setback north of the public midd
 test('academic and research road grid retains its named hierarchy',()=>{
  for(const name of ['环教北路','创新大道','知行大道','求是路','明德路','博雅路','研学二路'])assert.ok(roads.some(r=>r.name===name),name);
  const vertical=['创新大道','求是路','明德路','博雅路'].map(name=>roads.find(r=>r.name===name)!.points.map(toWorld));
- assert.ok(vertical.every(p=>Math.abs(p[0][0]-p.at(-1)![0])<1));
+ assert.ok(vertical.slice(2).every(p=>Math.abs(p[0][0]-p.at(-1)![0])<1));
+ assert.ok(vertical[1].every(p=>p[0]>=405-.01&&p[0]<=410+.01),'Qiushi follows the engineering frontage and retained south interface');
+ // The migrated teaching avenue bends back to the retained south entrance.
+ assert.ok(Math.abs(vertical[0].at(-1)![0]-335)<.01);
+ assert.ok(Math.abs(vertical[0].at(-1)![1]-367)<.01);
  const xs=vertical.map(p=>p[0][0]);assert.deepEqual([...xs].sort((a,b)=>a-b),xs);
 });
 
@@ -82,7 +89,7 @@ test('academic-east junction includes four blue cycle aprons and zebra markings'
 });
 
 test('academic-east junction is set back from the public middle ring',()=>{
- const link=roads.find(r=>r.name==='教学区—东区北联络路')!,p=link.points.map(toWorld),junction=p.find(q=>Math.abs(q[0]-97)<1)!;
+ const link=roads.find(r=>r.name==='教学区—东区北联络路')!,p=link.points.map(toWorld),junction=p.find(q=>Math.abs(q[0]-187)<1)!;
  const ring=roads.find(r=>r.name==='大学城中环西路')!.points.map(toWorld);
  let d=Infinity;
  for(let i=1;i<ring.length;i++){
@@ -107,7 +114,8 @@ test('non-connecting internal road surfaces stop clear of public ring roads',()=
   s=Math.max(0,Math.min(1,(B*t-D)/(A||1)));
   return Math.hypot(a[0]+s*ux-c[0]-t*vx,a[1]+s*uz-c[1]-t*vz);
  };
- const publicRoads=roads.filter(r=>r.name==='大学城中环西路'||r.name==='大学城外环西路');
+ // Include the unnamed eastern/northern perimeter road, previously omitted.
+ const publicRoads=roads.filter(r=>r.main);
  for(const name of ['环教北路','东侧环教路']){
   const road=roads.find(r=>r.name===name)!,a=road.points.map(toWorld);let gap=Infinity;
   for(const outer of publicRoads){const b=outer.points.map(toWorld);for(let i=0;i<a.length-1;i++)for(let j=0;j<b.length-1;j++)gap=Math.min(gap,segmentDistance(a[i],a[i+1],b[j],b[j+1]));}

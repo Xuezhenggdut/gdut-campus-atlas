@@ -45,9 +45,9 @@ export function structureBuilding(b:Building,p:Parts){
  const {width:w,depth:d,height:h}=b;
  p.box(w*.8,h,d, -w*.1,h/2,0,'#c48848');
  p.box(w*.2,h*.8,d*.88,w*.4,h*.4,0,'#d8ded3');
- for(let f=0;f<5;f++)for(const side of [-1,1]){
-  p.box(w,.5,.3,0,2+f*h/5,side*d/2,white);
-  for(let j=0;j<8;j++)p.box(w*.05,2.1,.18,-w*.42+j*w*.12,3.6+f*h/5,side*(d/2+.05),glass);
+ for(let f=0;f<b.floors;f++)for(const side of [-1,1]){
+  p.box(w,.5,.3,0,2+f*h/b.floors,side*d/2,white);
+  for(let j=0;j<8;j++)p.box(w*.05,2.1,.18,-w*.42+j*w*.12,3.6+f*h/b.floors,side*(d/2+.05),glass);
  }
  for(let j=0;j<=5;j++)for(const side of [-1,1])p.box(.45,h,.45,-w*.5+j*w/5,h/2,side*(d/2+.4),white);
  p.box(w+1,.7,d+1,0,h+.3,0,white);

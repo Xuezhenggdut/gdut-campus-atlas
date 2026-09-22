@@ -6,6 +6,21 @@ import {buildings,places,toWorld,type Area} from '../data/campus';
 // Only links explicitly visible in the official drawing; not pedestrian routing data.
 const rows=[['east',1,2,3],['east',4,5,6,7,8],['east',9,10],['east',12,13,14],['west',1,2,3,4],['west',5,6,7,8,9],['west',10,11,12],['west',13,14]] as const;
 export function makeConnections(area?:Area){const p=new Parts();
+ // East 9/10/11 are single connected dorm buildings. Keep the ground-level
+ // passage open while carrying the occupied storeys into the eastern wing.
+ if(!area||area==='east')for(const n of [9,10,11]){
+  const a=buildings.find(b=>b.id===`b-east-dorm-${n}`)!,b=buildings.find(b=>b.id===`b-east-dorm-${n}-east-wing`)!;
+  const [ax,z]=toWorld(a.position),[bx]=toWorld(b.position),x0=ax+a.width/2-1,x1=bx-b.width/2+1;
+  const step=a.height/a.floors,depth=Math.min(a.depth,b.depth)*.3;
+  for(let f=1;f<=a.floors;f++){
+   const y=f*step;
+   p.box(x1-x0,.34,depth,(x0+x1)/2,y,z,'#c4c6ba');
+   for(const side of [-1,1]){
+    for(let k=0;k<4;k++)p.box(x1-x0,.085,.085,(x0+x1)/2,y+.45+k*.28,z+side*depth/2,'#708d88');
+    for(let x=x0;x<=x1;x+=2)p.box(.09,1.12,.09,x,y+.76,z+side*depth/2,'#e3e3d7');
+   }
+  }
+ }
  for(const row of rows){if(area&&area!==row[0])continue;for(let i=2;i<row.length;i++){
   const a=buildings.find(b=>b.id===`b-${row[0]}-dorm-${row[i-1]}`)!,b=buildings.find(b=>b.id===`b-${row[0]}-dorm-${row[i]}`)!;
   const aa=toWorld(a.position),bb=toWorld(b.position),dx=bb[0]-aa[0],dz=bb[1]-aa[1],len=Math.hypot(dx,dz),ux=dx/len,uz=dz/len;

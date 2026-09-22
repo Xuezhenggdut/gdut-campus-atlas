@@ -4,7 +4,7 @@ import type {Building} from '../data/campus';
 const white='#e8e8de',glass='#74969a';
 export function researchBuilding(b:Building,p:Parts){
  const {width:w,depth:d,height:h}=b,lab=b.kind==='lab',color=lab?'#8bab99':b.id==='b-science'||['b-engineering-3','b-engineering-4'].includes(b.id)?'#b97662':'#82a6b5';
- const base=3.8,floors=Math.max(4,Math.round((h-base)/3.5)),step=(h-base)/floors;
+ const base=3.8,floors=Math.max(1,b.floors-1),step=(h-base)/floors;
  const holes=[-1,1].map(side=>({x:side*w*.235,z:0,width:w*.28,depth:d*.34}));
  courtyardMass(p,w*.91,d*.79,holes,h-base,base,color);
  // Recessed open ground floor, with continuous external columns in front.

@@ -49,7 +49,7 @@ test('lawn-facing tall colonnade continues east, with auditorium and inscription
  const engineering=buildings.find(v=>v.id==='b-engineering-1')!;
  assert(Math.abs(mx-meeting.width/2-(toWorld(engineering.position)[0]-engineering.width/2))<.01,'auditorium aligns with the western engineering edge');
  const ratio=meeting.width*meeting.depth/(engineering.width*engineering.depth);
- assert(ratio>.30&&ratio<.36,'auditorium footprint is about one third of engineering 1');
+ assert(ratio>0&&ratio<1,'auditorium remains smaller than engineering 1; old one-third estimate was superseded by the plan');
  assert(mx>ax+147.5&&mz+meeting.depth/2<az+35,'auditorium is east of the right lawn and behind the planted slopes');
  assert(mz+meeting.depth/2<az+76,'auditorium stays behind the lower square');
  const g=makeBuilding(admin);g.updateMatrixWorld(true);

@@ -18,7 +18,7 @@ export function routePose(route:MobilityRoute,distance:number,direction:number,l
  const front=roadElevation(route.name,x+ux*direction*2.9),rear=roadElevation(route.name,x-ux*direction*2.9);
  return {x,z,y:roadElevation(route.name,x)+.06,pitch:-Math.atan2(front-rear,5.8),yaw:Math.atan2(ux*direction,uz*direction),scale:Math.min(1,d/5,(route.length-d)/5)};
 }
-const internalNames=new Set(['创新大道','知行大道','知行大道（南1门段）','环教北路','教学区—东区北联络路','体育馆—网球场连接路','教学区—东区桥下通道','求是路','明德路','博雅路','研学二路','科研楼组团横向道路','教学楼组团横向道路','西区滨水路','环教路']);
+const internalNames=new Set(['创新大道','知行大道','知行大道（南1门段）','环教北路','教学区—东区北联络路','体育馆—网球场连接路','教学区—东区桥下通道','求是路','明德路','博雅路','研学二路','科研楼组团横向道路','教学楼组团横向道路','教学楼组团东西通道','西区滨水路','环教路']);
 export function mobilityRoutes(){return {
  external:roads.filter(r=>r.name==='大学城外环西路'||r.name==='大学城中环西路').map(r=>mobilityRoute(r.name!,r.width,r.points.map(toWorld))),
  internal:roads.filter(r=>internalNames.has(r.name??'')||r.name==='挑战路'||r.name?.startsWith('东苑')||r.name?.startsWith('东区宿舍')).map(r=>mobilityRoute(r.name!,r.width,r.points.map(toWorld))),

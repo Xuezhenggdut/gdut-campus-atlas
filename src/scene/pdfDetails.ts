@@ -1,6 +1,8 @@
 import * as T from 'three';
 import {Parts} from './geometry';
 import type {Building,Point} from '../data/campus';
+import {teachingPlan} from '../data/teachingPlan';
+import {plannedTeaching} from './plannedTeaching';
 const white='#eeeede',glass='#74959a',roof='#d2d7cc';
 function extrude(p:Parts,points:Point[],h:number,y:number,color:string){const s=new T.Shape();points.forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();const g=new T.ExtrudeGeometry(s,{depth:h,bevelEnabled:false});g.rotateX(-Math.PI/2);p.add(g,color,[0,y,0]);}
 function conferenceOutline(w:number,d:number):Point[]{
@@ -94,6 +96,7 @@ export function conference(b:Building,p:Parts){
 }
 
 export function detailedTeaching(b:Building,p:Parts){const {width:w,depth:d,height:h}=b;const count=w>115?3:2,part=w/(count+.18*(count-1)),gap=part*.18;
+ if(teachingPlan[b.id]){plannedTeaching(b,p);return;}
  for(let i=0;i<count;i++){const x=-w/2+part/2+i*(part+gap),col=i%2?'#d0ddd2':'#e6e3d0';
   // Actual open courtyard: four wings, not a solid block with a grey roof patch.
   const holeW=part*.38,holeD=d*.36,outerD=d*.82;
@@ -106,7 +109,7 @@ export function detailedTeaching(b:Building,p:Parts){const {width:w,depth:d,heig
    p.box(.22,.7,holeD,x+sign*holeW/2,h+.85,0,white);
   }
   p.box(holeW,.2,holeD,x,.1,0,'#b5c5ad');
-  for(let f=0;f<5;f++){const y=1.4+f*(h-1)/5;for(const side of [-1,1]){p.box((part+.25-holeW)/2,.65,d*.87,x+side*(part+.25+holeW)/4,y,0,'#82a28d');p.box(holeW,.65,(d*.87-holeD)/2,x,y,side*(d*.87+holeD)/4,'#82a28d');p.box(holeW*.78,1.9,.10,x,y+1.6,side*(holeD/2-.05),glass);}for(const sign of [-1,1])for(let j=0;j<Math.max(4,Math.round(part/4));j++){const n=Math.max(4,Math.round(part/4)),xx=x-part/2+(j+.5)*part/n;p.box(part/n*.78,2,.2,xx,y+1.65,sign*d*.418,glass);}}
+  for(let f=0;f<b.floors;f++){const y=1.4+f*(h-1)/b.floors;for(const side of [-1,1]){p.box((part+.25-holeW)/2,.65,d*.87,x+side*(part+.25+holeW)/4,y,0,'#82a28d');p.box(holeW,.65,(d*.87-holeD)/2,x,y,side*(d*.87+holeD)/4,'#82a28d');p.box(holeW*.78,1.9,.10,x,y+1.6,side*(holeD/2-.05),glass);}for(const sign of [-1,1])for(let j=0;j<Math.max(4,Math.round(part/4));j++){const n=Math.max(4,Math.round(part/4)),xx=x-part/2+(j+.5)*part/n;p.box(part/n*.78,2,.2,xx,y+1.65,sign*d*.418,glass);}}
   for(const xx of [x-part*.42,x+part*.42])for(const sign of [-1,1]){
    p.box(part*.065,h-1,.25,xx,h/2,sign*d*.435,'#9ebbc2');
    for(const side of [-1,1])p.box(.23,h+.7,.32,xx+side*part*.037,h/2,sign*d*.447,white);
@@ -115,7 +118,7 @@ export function detailedTeaching(b:Building,p:Parts){const {width:w,depth:d,heig
   // Four small rooftop caps appear on each module in the official illustration.
   for(const xx of [x-part*.31,x+part*.31])for(const zz of [-d*.23,d*.23])p.box(part*.14,1.1,d*.2,xx,h+1.1,zz,white);
  }
- for(let i=0;i<count-1;i++){const x=-w/2+part+i*(part+gap)+gap/2;for(let f=1;f<=4;f++){p.box(gap+.7,.35,d*.25,x,f*h/5,0,white);for(const sign of [-1,1])p.box(gap+.7,.7,.12,x,f*h/5+.5,sign*d*.12,white);}
+ for(let i=0;i<count-1;i++){const x=-w/2+part+i*(part+gap)+gap/2;for(let f=1;f<b.floors;f++){p.box(gap+.7,.35,d*.25,x,f*h/b.floors,0,white);for(const sign of [-1,1])p.box(gap+.7,.7,.12,x,f*h/b.floors+.5,sign*d*.12,white);}
   for(const sign of [-1,1])p.box(gap+2,.55,.5,x,h+.35,sign*d*.32,white);
   for(let j=0;j<=3;j++)p.box(.38,.4,d*.64,x-gap/2+j*gap/3,h+.4,0,white);
  }

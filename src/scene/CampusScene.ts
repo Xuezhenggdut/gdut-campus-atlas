@@ -4,7 +4,9 @@ import {excludesPodiumTree} from './entrancePodium';
 import {makeConnections} from './connections';
 import {makeRoadNetwork} from './roadNetwork';
 import {makeLakeDucks,swimLakeDucks} from './lakeDucks';
+import {lakeBankRings} from '../data/landscape';
 import {makeResidentialPark} from './residentialPark';
+import {makeWoodedHill,woodedHillHeight,makeAdministrationFootbridge} from './woodedHill';
 import {makeAfterglowSky,makeNightSky,type LightMode} from './lighting';
 import {photoViews} from '../data/photoViews';
 import * as T from 'three';
@@ -12,7 +14,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {areas,buildings,places,toWorld,tourIds,type Area,type Point,type Place} from '../data/campus';
-import {landPolygons,lakePolygons,lakeIsland,adminForecourt,libraryWestForecourt,residentialPark,residentialWaters,roads,promenades,inside} from '../data/landscape';
+import {landPolygons,lakePolygons,lakeIsland,adminForecourt,libraryWestForecourt,libraryEastForecourt,residentialPark,residentialWaters,roads,promenades,inside} from '../data/landscape';
 import {flatPolygon,pathMesh,mergeScene,disposeTree} from './geometry';
 type Callbacks={select:(id:string)=>void;ready:()=>void;error:(message:string)=>void;manual:()=>void};
 export class CampusScene {
@@ -45,16 +47,16 @@ export class CampusScene {
  landPolygons.forEach((poly,i)=>{const wp=poly.map(toWorld);this.terrain.add(flatPolygon(wp,'#b9c6a7',-.8));this.terrain.add(pathMesh([...wp,wp[0]],2.6,'#dce0cc',.1));});
  // Canal that separates west residences from east residences.
  residentialWaters.slice(1).forEach(poly=>this.terrain.add(flatPolygon(poly.map(toWorld),'#87b8b8',.13)));
- this.terrain.add(makeResidentialPark());
- lakePolygons.forEach(poly=>{const wp=poly.map(toWorld);this.terrain.add(pathMesh([...wp,wp[0]],8,'#d8d4bd',.1));this.terrain.add(flatPolygon(wp,'#7faeb0',.13));});
+ this.terrain.add(makeResidentialPark(),makeWoodedHill(),makeAdministrationFootbridge());
+ lakeBankRings.forEach(poly=>{const wp=poly.map(toWorld);this.terrain.add(pathMesh([...wp,wp[0]],8,'#d8d4bd',.1));});
+ lakePolygons.forEach(poly=>this.terrain.add(flatPolygon(poly.map(toWorld),'#7faeb0',.13)));
  this.terrain.add(flatPolygon(lakeIsland.map(toWorld),'#b9c6a7',.25));
  this.terrain.add(flatPolygon(libraryWestForecourt.map(toWorld),'#ded8c7',.56));
  this.terrain.add(makeRoadNetwork());
  this.root.add(this.ducks);
  promenades.forEach(p=>this.terrain.add(pathMesh(p.map(toWorld),3.4,'#e3dbc5',.5)));
- // Plaza in front of the library, ground pattern independent of source image.
- const lib=toWorld([761,897]);const plaza=new T.Mesh(new T.CircleGeometry(48,40),new T.MeshStandardMaterial({color:'#ded8c7'}));plaza.rotation.x=-Math.PI/2;plaza.position.set(lib[0],.55,lib[1]);plaza.receiveShadow=true;this.terrain.add(plaza);
- const libraryBuilding=buildings.find(b=>b.placeIds.includes('library'))!;const [lx,lz]=toWorld(libraryBuilding.position),lr=libraryBuilding.rotation;const forecourt=new T.Mesh(new T.PlaneGeometry(74,70),new T.MeshStandardMaterial({color:'#ded8c7',roughness:1}));forecourt.rotation.set(-Math.PI/2,0,-lr);forecourt.position.set(lx+76*Math.cos(lr),.53,lz-76*Math.sin(lr));forecourt.receiveShadow=true;this.terrain.add(forecourt);
+ // Shared footprints keep library paving and vegetation clear of the avenues.
+ this.terrain.add(flatPolygon(libraryEastForecourt.map(toWorld),'#ded8c7',.53));
  for(const gate of places.filter(p=>p.id.includes('gate')||p.id==='academic-nw')){const [x,z]=toWorld(gate.position);const g=new T.Group();for(let i=0;i<7;i++){const stripe=new T.Mesh(new T.BoxGeometry(1.1,.08,9),new T.MeshStandardMaterial({color:'#f0ecdc'}));stripe.position.x=(i-3)*2.2;g.add(stripe);}g.position.set(x,.7,z);g.rotation.y=.39;this.terrain.add(g);}
  const merged=mergeScene(this.terrain);disposeTree(this.terrain);this.terrain.clear();this.terrain.add(merged);merged.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
  }
@@ -66,13 +68,17 @@ export class CampusScene {
  private async loadDetails(){try{const {makeBuilding}=await import('./models');for(const area of Object.keys(areas) as Area[]){await new Promise(r=>setTimeout(r,60));if(this.disposed)return;const local=new T.Group();for(const b of buildings){const p=places.find(p=>p.id===b.placeIds[0])!;if(p.area===area&&p.status==='built')local.add(makeBuilding(b));}local.add(makeConnections(area));const merged=mergeScene(local);disposeTree(local);if(this.disposed){disposeTree(merged);return;}const target=this.builtGroups.get(area)!;disposeTree(target);target.clear();target.add(merged);applyNightEmission(merged,this.lightMode==='night');this.modelStatus[area]='ready';this.renderer.shadowMap.needsUpdate=true;this.dirty=true;} }catch(e){this.modelStatus.error=String(e);this.callbacks.error('部分精细模型未能加载，已保留基础建筑。');}}
  private buildTrees(){let seed=8517;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};const points:{x:number;z:number;s:number;c:number}[]=[];
  const built=buildings.filter(b=>b.kind!=='lake').map(b=>({...b,world:toWorld(b.position)}));
+ const track=built.find(b=>b.id==='b-central-track')!;
+ const standWest=track.world[0]-track.depth/2-50,standEast=track.world[0]-track.depth/2+8;
+ const standHalfLength=track.width*.59+10;
  function nearRoad(p:Point){return roads.some(r=>r.points.some((a,i)=>{if(!i)return false;const b=r.points[i-1],dx=a[0]-b[0],dy=a[1]-b[1];const t=Math.max(0,Math.min(1,((p[0]-b[0])*dx+(p[1]-b[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(p[0]-b[0]-t*dx,p[1]-b[1]-t*dy)<r.width/2+5;}));}
- for(let n=0;n<17000&&points.length<1300;n++){const uv:Point=[170+random()*1060,65+random()*1200];if(inside(uv,adminForecourt)||inside(uv,residentialPark)||inside(uv,libraryWestForecourt)||!landPolygons.some(p=>inside(uv,p))||residentialWaters.some(p=>inside(uv,p))||(lakePolygons.some(p=>inside(uv,p))&&!inside(uv,lakeIsland))||nearRoad(uv))continue;const [x,z]=toWorld(uv);if(excludesPodiumTree(x,z))continue;if(built.some(b=>{const dx=x-b.world[0],dz=z-b.world[1],c=Math.cos(b.rotation),s=Math.sin(b.rotation);const lx=dx*c-dz*s,lz=dx*s+dz*c;if(b.placeIds.includes('library')&&lx>-100&&lx<-b.width/2&&Math.abs(lz)<49)return true;if(b.placeIds.includes('library')&&lx>b.width/2-5&&lx<140&&Math.abs(lz)<55)return true;if(b.placeIds.includes('gym')&&lx>-b.width*.72&&lx<82&&lz>-b.depth*.96&&lz<b.depth*.89)return true;if(b.placeIds.includes('admin')&&lx>-b.width/2-6&&lx<170&&lz>-b.depth*.7&&lz<84)return true;if(b.placeIds.includes('comprehensive')&&lx>-b.width/2-6&&lx<170&&Math.abs(lz)<b.depth*.8)return true;if(b.placeIds.includes('culture')&&lz>b.depth*.2&&lz<b.depth*1.6&&Math.abs(lx)<b.width*.65)return true;return Math.abs(lx)<b.width/2+9&&Math.abs(lz)<b.depth/2+10;}))continue;points.push({x,z,s:3.5+random()*3,c:random()});}
+ for(let n=0;n<17000&&points.length<1300;n++){const uv:Point=[170+random()*1060,65+random()*1200];if(inside(uv,adminForecourt)||inside(uv,residentialPark)||inside(uv,libraryWestForecourt)||inside(uv,libraryEastForecourt)||!landPolygons.some(p=>inside(uv,p))||residentialWaters.some(p=>inside(uv,p))||(lakePolygons.some(p=>inside(uv,p))&&!inside(uv,lakeIsland))||nearRoad(uv))continue;const [x,z]=toWorld(uv);if(excludesPodiumTree(x,z)||(x>standWest&&x<standEast&&Math.abs(z-track.world[1])<standHalfLength))continue;if(built.some(b=>{const dx=x-b.world[0],dz=z-b.world[1],c=Math.cos(b.rotation),s=Math.sin(b.rotation);const lx=dx*c-dz*s,lz=dx*s+dz*c;if(b.placeIds.includes('library')&&lx>-100&&lx<-b.width/2&&Math.abs(lz)<49)return true;if(b.placeIds.includes('library')&&lx>b.width/2-5&&lx<48&&Math.abs(lz)<45)return true;if(b.placeIds.includes('gym')&&lx>-b.width*.72&&lx<82&&lz>-b.depth*.96&&lz<b.depth*.89)return true;if(b.placeIds.includes('admin')&&lx>-b.width/2-6&&lx<170&&lz>-b.depth*.7&&lz<84)return true;if(b.placeIds.includes('comprehensive')&&lx>-b.width/2-6&&lx<170&&Math.abs(lz)<b.depth*.8)return true;if(b.placeIds.includes('culture')&&lz>b.depth*.2&&lz<b.depth*1.6&&Math.abs(lx)<b.width*.65)return true;return Math.abs(lx)<b.width/2+9&&Math.abs(lz)<b.depth/2+10;}))continue;points.push({x,z,s:3.5+random()*3,c:random()});}
  // Tree positions are decorative, not surveyed. Keep low reference sightlines
  // clear so a generated canopy cannot conceal the architecture being checked.
  const sightlines=photoViews.filter(v=>v.localCamera[1]<20).flatMap(v=>{const b=built.find(b=>b.placeIds.includes(v.placeId));if(!b)return [];const [cx,,cz]=v.localCamera,c=Math.cos(b.rotation),s=Math.sin(b.rotation);return [{x:b.world[0],z:b.world[1],dx:cx*c+cz*s,dz:-cx*s+cz*c,width:b.width}];});
  for(let i=points.length-1;i>=0;i--){const p=points[i];if(sightlines.some(v=>{const t=Math.max(0,Math.min(1,((p.x-v.x)*v.dx+(p.z-v.z)*v.dz)/(v.dx*v.dx+v.dz*v.dz)));return Math.hypot(p.x-v.x-v.dx*t,p.z-v.z-v.dz*t)<12+v.width*.5*(1-t);})){points.splice(i,1);}}
- const tree=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:'#ffffff',roughness:1}),points.length);tree.name='campus-trees';const trunk=new T.InstancedMesh(new T.CylinderGeometry(.45,.65,5,5),new T.MeshStandardMaterial({color:'#8f9273'}),points.length);const mat=new T.Matrix4(),q=new T.Quaternion(),colors=['#819969','#8eab78','#718c63','#9eaf7d','#64876c'];points.forEach((p,i)=>{mat.compose(new T.Vector3(p.x,5+p.s*.45,p.z),q,new T.Vector3(p.s,p.s*1.05,p.s));tree.setMatrixAt(i,mat);tree.setColorAt(i,new T.Color(colors[Math.floor(p.c*colors.length)]));mat.compose(new T.Vector3(p.x,2.8,p.z),q,new T.Vector3(1,1,1));trunk.setMatrixAt(i,mat);});tree.castShadow=true;tree.receiveShadow=true;this.vegetation.add(tree,trunk);
+ for(let n=0,added=0;n<1400&&added<110;n++){const x=-10+random()*190,z=195+random()*175;if(woodedHillHeight(x,z)<.9||points.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;points.push({x,z,s:4+random()*2.5,c:random()});added++;}
+ const tree=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:'#ffffff',roughness:1}),points.length);tree.name='campus-trees';const trunk=new T.InstancedMesh(new T.CylinderGeometry(.45,.65,5,5),new T.MeshStandardMaterial({color:'#8f9273'}),points.length);const mat=new T.Matrix4(),q=new T.Quaternion(),colors=['#819969','#8eab78','#718c63','#9eaf7d','#64876c'];points.forEach((p,i)=>{mat.compose(new T.Vector3(p.x,woodedHillHeight(p.x,p.z)+5+p.s*.45,p.z),q,new T.Vector3(p.s,p.s*1.05,p.s));tree.setMatrixAt(i,mat);tree.setColorAt(i,new T.Color(colors[Math.floor(p.c*colors.length)]));mat.compose(new T.Vector3(p.x,woodedHillHeight(p.x,p.z)+2.8,p.z),q,new T.Vector3(1,1,1));trunk.setMatrixAt(i,mat);});tree.castShadow=true;tree.receiveShadow=true;this.vegetation.add(tree,trunk);
  }
  private createLabels(){for(const p of places){const el=document.createElement('button');el.className='map-label'+(p.landmark?' landmark':'')+(p.status==='planned'?' planned':'');el.textContent=p.name+(p.status==='planned'?' · 规划':'');el.type='button';el.setAttribute('aria-label','查看'+p.name);el.onclick=()=>this.callbacks.select(p.id);this.labelHost.append(el);this.labels.set(p.id,el);} }
  private layoutLabels(time:number){if(time-this.lastLabels<90)return;this.lastLabels=time;const w=this.host.clientWidth,h=this.host.clientHeight;const distance=this.camera.position.distanceTo(this.controls.target);const rects:{x:number;y:number;w:number;h:number}[]=[];const selected=this.current?.id;const sorted=[...places].sort((a,b)=>Number(b.id===selected)-Number(a.id===selected)||Number(!!b.landmark)-Number(!!a.landmark));let visible=0;

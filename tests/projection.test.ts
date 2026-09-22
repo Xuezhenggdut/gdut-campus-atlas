@@ -1,3 +1,4 @@
+import {roads} from '../src/data/landscape';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {projectMap,unprojectMap,mapProjection} from '../src/data/projection';
@@ -10,7 +11,7 @@ test('calibrated north remains north; campus grid axes become perpendicular',()=
  for(const p of [[749,855],[667,650],[1103,499],[300,178]] as [number,number][]){const q=unprojectMap(projectMap(p));assert.ok(Math.hypot(q[0]-p[0],q[1]-p[1])<1e-8);}
 });
 test('culture entrance faces its forecourt, with athletics behind',()=>{
- const b=buildings.find(b=>b.id==='b-culture')!,center=toWorld(b.position),road=toWorld([717,680]),track=toWorld([594,622]);
+ const b=buildings.find(b=>b.id==='b-culture')!,center=toWorld(b.position),road=toWorld(roads.find(r=>r.name==='挑战路')!.points.at(-1)!),track=toWorld(buildings.find(b=>b.id==='b-central-track')!.position);
  const normal=[Math.sin(b.rotation),Math.cos(b.rotation)];
  assert.ok((road[0]-center[0])*normal[0]+(road[1]-center[1])*normal[1]>0);
  assert.ok((track[0]-center[0])*normal[0]+(track[1]-center[1])*normal[1]<0);
@@ -21,5 +22,5 @@ test('independent football field stays north of south track and east of small co
  const fp=toWorld(f.position),sp=toWorld(s.position),cp=toWorld(c.position);
  assert.ok(fp[1]+f.width/2<sp[1]-s.width/2);
  assert.ok(cp[0]+c.width/2<fp[0]-f.depth/2);
- assert.ok(Math.abs(fp[0]-sp[0])<1);
+ assert.ok(Math.abs(fp[0]-sp[0]-8*2.28)<1e-8);
 });

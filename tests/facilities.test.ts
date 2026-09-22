@@ -1,8 +1,10 @@
+import {registrationDelta} from '../src/data/planningFrame';
+import {projectMap,unprojectMap} from '../src/data/projection';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import {roadSurfaceConflicts} from '../src/data/roadClearance';
-import {buildings,places} from '../src/data/campus';
+import {buildings,places,toWorld} from '../src/data/campus';
 import {residentialWaters,westPeripheralWater,inside,roads} from '../src/data/landscape';
 import {Parts} from '../src/scene/geometry';
 import {makeGym} from '../src/scene/sportsLandmarks';
@@ -19,10 +21,28 @@ test('the two gym pools have parallel north-south long axes and are separated ea
  for(const box of boxes){const size=box.getSize(new T.Vector3());assert(size.z>size.x*1.5);}
  assert(boxes[0].max.x<boxes[1].min.x);
  assert(Math.abs(boxes[0].min.z-boxes[1].min.z)<.01);
+ const gym=buildings.find(b=>b.id==='b-gym')!,basket=buildings.find(b=>b.id==='b-courts-south')!;
+ assert(boxes.every(box=>box.min.x>0&&box.min.z>gym.depth*.3),'pools belong southeast of the main hall');
+ assert(toWorld(gym.position)[1]+Math.max(...boxes.map(box=>box.max.z))<toWorld(basket.position)[1]-basket.depth/2,'basketball courts clear the swimming pools');
  p.bins.forEach(gs=>gs.forEach(g=>g.dispose()));
 });
+
+test('sports groups match the satellite adjacency and north junction',()=>{
+ const b=(id:string)=>buildings.find(b=>b.id==='b-'+id)!;
+ const gym=toWorld(b('gym').position),track=toWorld(b('central-track').position),culture=toWorld(b('culture').position),teach=toWorld(b('teaching-6').position);
+ const basket=b('courts-south'),volley=b('courts-west'),bp=toWorld(basket.position),vp=toWorld(volley.position);
+ assert(gym[0]<track[0]&&track[0]<culture[0]&&culture[0]<teach[0]);
+ assert(bp[1]-basket.depth/2>track[1]+b('central-track').width/2,'basketball stands south of the running track');
+ assert(vp[0]+volley.width/2<bp[0]-basket.width/2,'volleyball stands west of basketball');
+ const junction=toWorld(roads.find(r=>r.name==='教学区—东区北联络路')!.points[0]);
+ assert(junction[0]>culture[0]&&junction[0]<teach[0]);
+ assert(junction[1]<culture[1]-b('culture').width/2,'junction is north of the activity centre');
+ assert(junction[1]<teach[1]-b('teaching-6').depth/2,'junction is north of teaching 6');
+ for(const name of ['环教北路','挑战路'])assert(roads.find(r=>r.name===name)!.points.map(toWorld).some(p=>Math.hypot(p[0]-junction[0],p[1]-junction[1])<1e-7));
+});
 test('west perimeter water is present; residential waterways do not cover building anchors',()=>{
- assert(inside([175,320],westPeripheralWater));
+ const q=projectMap([175,320]),d=registrationDelta('west');
+ assert(inside(unprojectMap([q[0]+d[0],q[1]+d[1]]),westPeripheralWater));
  for(const b of buildings.filter(b=>places.find(p=>p.id===b.placeIds[0])?.status==='built'))assert(!residentialWaters.some(poly=>inside(b.position,poly)),b.id);
  for(const name of ['国医东路','大学城广工二路'])assert(roads.find(r=>r.name===name)!.width>=25);
 });

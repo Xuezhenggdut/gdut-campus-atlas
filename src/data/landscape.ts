@@ -2,6 +2,11 @@ import routeData from './road-routes.json';
 import type {Point} from './campus';
 import {researchRowOffset} from './campus';
 import {unprojectMap,projectMap} from './projection';
+import {planningResidentialRoads} from './planningCalibration';
+import {mergeWaterBoundary} from './waterBoundary';
+import {registrationDelta,pdfToWorld} from './planningFrame';
+import {registerLakePoint} from './waterRegistration';
+const moveDistrict=(points:Point[],region:'east'|'west')=>points.map(p=>{const q=projectMap(p),d=registrationDelta(region);return unprojectMap([q[0]+d[0],q[1]+d[1]]);});
 const ground=(points:Point[])=>points.map(unprojectMap);
 export const landPolygons:Point[][]=[
  [[389,73],[655,234],[554,397],[471,398],[197,343],[181,267],[194,160],[269,106]],
@@ -9,19 +14,30 @@ export const landPolygons:Point[][]=[
  [[201,405],[480,461],[611,542],[704,650],[900,735],[1208,858],[1255,1236],[1121,1269],[793,1234],[589,1138],[395,1058],[201,927],[300,737],[311,594],[181,516]],
  ground([[-145,340],[-92,483],[140,488],[335,484],[520,439],[540,342],[300,334],[30,335]])
 ];
+landPolygons[0]=moveDistrict(landPolygons[0],'west');
+landPolygons[1]=moveDistrict(landPolygons[1],'east');
+// Extend the eastern ground envelope with the calibrated research plots.
+landPolygons.push(ground([[590,0],[705,0],[875,173],[810,285],[630,400],[570,345]]));
 // Banks follow the outside of the library's full stair/forecourt envelope.
 // Ground coordinates remain schematic; these are not roof or label positions.
-export const lakePolygons:Point[][]=[ground([[21,319],[27,297],[95,293],[111,260],[111,190],[137,172],[186,197],[180,236],[203,282],[180,324],[188,353],[182,371],[162,369],[140,358],[108,354],[78,365],[44,375],[20,366],[12,347]]),ground([[175,267],[196,229],[195,202],[140,181],[113,164],[100,145],[95,125],[97,110],[107,108],[114,114],[116,135],[129,164],[164,186],[222,205],[310,240],[310,256],[218,256],[218,300],[241,300],[241,302],[241,345],[310,345],[310,350],[314,410],[320,490],[345,565],[321,573],[294,494],[286,411],[276,367],[278,362],[246,383],[216,380],[197,374],[190,350],[214,305]])];
+export const lakeSourcePolygons:Point[][]=[[[21,319],[27,297],[95,293],[111,260],[111,190],[137,172],[186,197],[180,236],[203,282],[180,324],[188,353],[182,371],[162,369],[140,358],[108,354],[78,365],[44,375],[20,366],[12,347]],[[175,267],[196,229],[195,202],[140,181],[113,164],[100,145],[95,125],[97,110],[107,108],[114,114],[116,135],[129,164],[164,186],[222,205],[310,240],[310,256],[218,256],[218,300],[241,300],[241,302],[241,345],[310,345],[310,350],[314,410],[320,490],[345,565],[321,573],[294,494],[286,411],[276,367],[278,362],[246,383],[216,380],[197,374],[190,350],[214,305]]];
+for(let i=0;i<lakeSourcePolygons.length;i++)lakeSourcePolygons[i]=lakeSourcePolygons[i].map(registerLakePoint);
+// Preserve the water occupancy polygons (including the enclosed dry pocket).
+// Draw bank strips only on the union boundary, never along submerged seams.
+export const lakePolygons:Point[][]=lakeSourcePolygons.map(ground);
+export const lakeBankRings:Point[][]=mergeWaterBoundary(lakeSourcePolygons).map(ground);
 // The entrance drive lies west of the stair garden and lower paved square.
 // This footprint is also used to keep generated vegetation off the forecourt.
 export const adminForecourt:Point[]=ground([[345,342],[434,342],[434,426],[345,446]]);
 // Satellite crop: a broad dry forecourt separates the west steps from the
 // shortened waterway head. Keep this space free of procedural trees.
-export const libraryWestForecourt:Point[]=ground([[102,65],[158,65],[158,139],[132,133],[123,116],[118,98],[102,94]]);
-export const lakeIsland:Point[]=[[416,927],[451,908],[487,928],[535,928],[586,890],[615,899],[625,933],[598,956],[578,972],[552,979],[527,999],[485,987],[466,970],[418,974],[396,958]];
+export const libraryWestForecourt:Point[]=ground([[208,49],[244,49],[244,116],[223,116],[208,102]]);
+// East steps lead to a forecourt that stops before Innovation Avenue.
+export const libraryEastForecourt:Point[]=ground([[311,48],[355,48],[355,118],[311,118]]);
+export const lakeIsland:Point[]=[[416,927],[451,908],[487,928],[535,928],[586,890],[615,899],[625,933],[598,956],[578,972],[552,979],[527,999],[485,987],[466,970],[418,974],[396,958]].map(p=>unprojectMap(registerLakePoint(projectMap(p as Point))));
 // Residential waterways traced from the supplied official map, in its image coordinates.
-export const canalWestRoad:Point[]=[[551,420],[605,380],[675,335],[739,303],[821,265],[882,235]];
-export const canalEastRoad:Point[]=[[650,495],[695,450],[750,395],[815,337],[884,312],[947,299]];
+export const canalWestRoad:Point[]=moveDistrict([[551,420],[605,380],[675,335],[739,303],[821,265],[882,235]],'west');
+export const canalEastRoad:Point[]=moveDistrict([[650,495],[695,450],[750,395],[815,337],[884,312],[947,299]],'east');
 const bank=(points:Point[],offset:number)=>points.map(p=>{const [x,z]=projectMap(p);return unprojectMap([x+offset,z]);});
 export const residentialPark:Point[]=[...bank(canalWestRoad,17),...bank(canalEastRoad,-17).reverse()];
 landPolygons.push(residentialPark);
@@ -44,7 +60,7 @@ export const parkPaths:Point[][]=[
  parkShape([[.02,.77],[.47,.785],[.71,.792],[.94,.8]]),
  ...[.18,.38,.62,.70].map(t=>parkShape([[.83,t],[.94,t]])),
 ];
-export const westPeripheralWater:Point[]=[[409,79],[350,94],[296,117],[253,148],[218,183],[195,210],[191,231],[180,253],[186,277],[179,309],[184,333],[201,345],[225,344],[246,336],[261,343],[275,354],[303,358],[271,380],[177,365],[166,354],[164,322],[164,287],[169,250],[179,213],[193,179],[215,146],[250,119],[293,98],[350,78],[403,65]];
+export const westPeripheralWater:Point[]=moveDistrict([[409,79],[350,94],[296,117],[253,148],[218,183],[195,210],[191,231],[180,253],[186,277],[179,309],[184,333],[201,345],[225,344],[246,336],[261,343],[275,354],[303,358],[271,380],[177,365],[166,354],[164,322],[164,287],[169,250],[179,213],[193,179],[215,146],[250,119],[293,98],[350,78],[403,65]],'west');
 export const residentialWaters=[residentialCanal,westPeripheralWater];
 export const roadGuides:{points:Point[];width:number;main?:boolean;name?:string}[]=[
  {points:[[133,368],[336,398],[523,457],[702,582],[889,696],[1117,740],[1233,755]],width:25,main:true,name:'大学城中环西路'},
@@ -68,7 +84,7 @@ export const roadGuides:{points:Point[];width:number;main?:boolean;name?:string}
  {points:[[858,922],[953,978],[1024,1041],[1123,1113]],width:9},
  {points:[[970,867],[1002,928],[909,1038],[832,1117]],width:9},
 ];
-export const promenades:Point[][]=[ground([[55,350],[72,351],[100,325],[126,328],[147,319],[149,295],[160,275],[161,230],[142,216],[130,222],[126,260],[113,285],[86,301],[55,304],[49,325],[55,350]]),ground([[80,170],[87,145],[87,120],[91,102],[102,94]])];
+export const promenades:Point[][]=[ground([[55,350],[72,351],[100,325],[126,328],[147,319],[149,295],[160,275],[161,230],[142,216],[130,222],[126,260],[113,285],[86,301],[55,304],[49,325],[55,350]]),ground([[80,170],[87,145],[87,120],[91,102],[102,94]])].map(poly=>poly.map(p=>unprojectMap(registerLakePoint(projectMap(p)))));
 export function inside([x,y]:Point,poly:Point[]){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;}
 
 // Refined centerlines keep the schematic corridors clear of building ground envelopes.
@@ -78,7 +94,7 @@ const retained=new Set([0,1]);
 const route=(name:string,width:number,points:Point[])=>({name,width,points:ground(points)});
 const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,i)=>retained.has(i)).map(r=>r===routeData[12]?{...r,points:r.points.map(([u,v])=>u===1064?[1069,572] as Point:[u,v] as Point)}:r),
  {name:'国医西路',width:19,main:true,points:[[411,53],[350,64],[288,84],[235,111],[196,149],[171,191],[151,237],[145,280],[148,323],[146,359]]},
- {name:'西区西门连接路',width:13,points:[[182,158],[196,169],[240,196],[268,213]]},
+ route('西区西门连接路',9,[[-647.07,-171.75],[-630.65,-169.93],[-615,-180],[-613.2,-204.5],[-601.8,-204.5]]),
  {name:'国医东路',width:27,main:true,points:canalWestRoad},
  {name:'大学城广工二路',width:27,main:true,points:canalEastRoad},
  {name:'西区滨水路',width:8,points:[[216,183],[207,207],[207,228],[195,250],[195,281],[188,307],[192,329],[209,338],[235,334],[258,333],[277,342],[302,362]]},
@@ -90,24 +106,26 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  route('西区宿舍东纵路',9,[[-330,-354],[-330,-110]]),
  route('西区五六栋横路',7,[[-420,-151],[-330,-151]]),
  route('西三食堂南侧路',8,[[-420,-110],[-330,-110],[-294,-108],[-258,-122],[-252,-197]]),
- {...route('大学城外环西路',24,[[-530.169,20.742],[-501,42],[-485,86],[-453,114],[-395.859,120.160],[-246.901,164.178],[-171.521,240.009],[-130.845,343.709],[-78.789,470],[140,474],[335,470],[505,430],[738.451,272.911],[807.634,173.718]]),main:true},
- route('创新大道',14,[[335,-88],[335,367]]),
+ {...route('大学城外环西路',24,[[-530.169,20.742],[-501,42],[-485,86],[-453,114],[-395.859,120.160],[-246.901,164.178],[-171.521,240.009],[-130.845,343.709],[-78.789,470],[140,474],[335,470],[505,430],[798.451,272.911],[867.634,173.718]]),main:true},
+ route('创新大道',8,[[394,-110],[394,33],[365,55],[365,238],[335,260],[335,367]]),
  route('南门内外道路连接段',14,[[335,367],[335,470]]),
- route('知行大道',12,[[25,45],[335,45],[435,45],[435,18],[559,18]]),
+ route('知行大道',12,[[52,45],[97,33],[335,33],[435,33],[538.446,33],[538.446,18],[559,18]]),
  route('知行大道（南1门段）',12,[[-360,130.8],[-300,110],[-280,130],[-250,140],[-200,140],[-100,140],[-35,140]]),
  // Supplied Amap crop: 环教北路 is the internal campus street running
  // parallel to (and south of) the public 大学城中环西路.
- route('环教北路',10,[[-260,-59.08235294117654],[-200,-66],[-130,-66],[-60,-66],[40,-66],[97,-50],[97,-29],[190,-29],[280,-29],[335,-29]]),
- route('教学区—东区北联络路',10,[[25,-50],[97,-50],[140,-50]]),
+ route('环教北路',6,[[-205,-138],[-130,-146],[-60,-144],[15,-128],[45,-117],[145,-117],[187,-117]]),
+ route('教学区—东区北联络路',6,[[187,-117],[213,-110],[394,-110]]),
  // The gym/tennis connector meets 环教北路, not the external middle ring.
- route('体育馆—网球场连接路',9,[[-249,-156],[-255,-118],[-260,-66],[-260,18],[-260,50],[-260,82],[-260,140]]),
- route('求是路',9,[[397,45],[397,278]]),
- route('明德路',10,[[495,18],[495,350]]),
- route('博雅路',9,[[600,18],[600,278]]),
- ...[110,168,225,278].map((z,i)=>route(i===1?'研学二路':'科研楼组团横向道路',8,[[397,z+researchRowOffset],[495,z+researchRowOffset],[600,z+researchRowOffset]])),
- route('环教路',12,[[25,45],[-35,75],[-35,115],[-35,236],[-20,290],[-17,342],[-6,365],[14,382],[45,390],[80,380],[108,370],[137,373],[165,389],[191,397],[218,398],[249,402],[283,381],[310,367],[335,367]]),
- route('东侧环教路',12,[[495,350],[518,357],[540,357],[650,285],[690,255],[710,240],[700,165],[660,18],[564,18]]),
- route('挑战路',10,[[97,-226],[97,-140],[97,-93],[97,-50],[97,45]]),
+ route('体育馆—网球场连接路',9,[[-205,-138],[-205,-5],[-220,10],[-220,60],[-205,82],[-205,140]]),
+ route('求是路',6,[[410,33],[410,250.956],[405,260],[405,303.596]]),
+ route('明德路',10,[[538.446,18],[538.446,350]]),
+ route('博雅路',4,[[653.124,18],[653.124,303.596]]),
+ ...[87.026,143.566,196.916,250.956,303.596].map((z,i)=>route(i===1?'研学二路':'科研楼组团横向道路',8,[[z<260?410:405,z],[538.446,z],[653.124,z]])),
+ route('环教路',12,[[52,45],[52,92],[-35,115],[-35,236],[-20,290],[-17,342],[-6,365],[14,382],[45,390],[80,380],[108,370],[137,373],[165,389],[191,397],[218,398],[249,402],[283,381],[310,367],[335,367]]),
+ // End on the internal research street through the gap south of the structural
+ // lab. The old diagonal return to (720,18) crossed the public perimeter road.
+ route('东侧环教路',8,[[538.446,350],[570,340],[615,335],[725,280],[760,240],[775,220],[770,165],[750,150],[653.124,150]]),
+ route('挑战路',6,[[188.39,-253.3048450704224],[188.39,-192],[187,-140],[187,-117],[187,-43.625],[187,33]]),
  route('东苑西侧路',8,[[0,-352],[0,-140],[12,-132],[125,-132],[125,-350]]),
  route('东苑二路',8,[[125,-405],[125,-132]]),
  route('东苑一横路',8,[[0,-226],[235,-226]]),
@@ -117,12 +135,54 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  route('东区宿舍横路',7,[[125,-263],[235,-263]]),
  route('东区宿舍横路',7,[[125,-293],[235,-293]]),
  route('东区宿舍东西通道',8,[[-90,-268],[0,-268],[125,-268]]),
- route('教学楼组团横向道路',8,[[97,-29],[335,-29],[519,-29]]),
+ route('教学楼组团东西通道',6,[[187,-43.625],[280,-43.625],[394,-43.625]]),
+ route('教学楼组团横向道路',8,[[394,-43.625],[592,-43.625],[592,18],[538.446,18]]),
 ];
 
 // Remove the annotated middle-ring frontage spurs, including their junctions.
 // Clip only this frontage; preserve the residential streets farther inside.
+// Public middle ring traced in the same complete PDF frame as the districts.
+rawRoads[0].points=ground(([[488,402],[530,376],[580,354],[625,349],[650,350],[720,357],[770,358],[820,355],[880,335]] as Point[]).map(pdfToWorld));
+// Move residential edge roads together; public middle-ring interfaces remain
+// on the existing spine and are reconnected by the gate/junction logic below.
+for(const r of rawRoads){
+ if(['国医西路','西区西门连接路','西区滨水路'].includes(r.name??''))r.points=moveDistrict(r.points,'west');
+}
+rawRoads[1].points=rawRoads[1].points.map(p=>{const [x,z]=projectMap(p),t=Math.max(0,Math.min(1,(-z-205)/95));
+ const west=registrationDelta('west'),east=registrationDelta('east'),u=Math.max(0,Math.min(1,(x+220)/320));
+ return unprojectMap([x+t*(west[0]*(1-u)+east[0]*u),z+t*(west[1]*(1-u)+east[1]*u)]);
+});
+rawRoads[0].points[rawRoads[0].points.length-1]=rawRoads[1].points.at(-2)!;
 const middleRing=rawRoads[0].points.map(projectMap);
+// Both reference maps show Guoyi West Road meeting the public perimeter at
+// its ends. Restore those named public junctions after district registration.
+const guoyiWest=rawRoads.find(r=>r.name==='国医西路')!;
+for(const [end,target] of [[0,rawRoads[1]],[-1,rawRoads[0]]] as const){
+ const i=end===0?0:guoyiWest.points.length-1,p=projectMap(guoyiWest.points[i]);
+ let closest=p,best=Infinity;
+ for(let j=1;j<target.points.length;j++){
+  const a=projectMap(target.points[j-1]),b=projectMap(target.points[j]),dx=b[0]-a[0],dz=b[1]-a[1];
+  const t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz)));
+  const q:Point=[a[0]+t*dx,a[1]+t*dz],d=Math.hypot(p[0]-q[0],p[1]-q[1]);
+  if(d<best){best=d;closest=q;}
+ }
+ guoyiWest.points[i]=unprojectMap(closest);
+}
+rawRoads.find(r=>r.name==='大学城外环西路')!.points[0]=rawRoads[0].points[0];
+const lakeRoad=rawRoads.find(r=>r.name==='环教路')!;
+lakeRoad.points=lakeRoad.points.map(p=>{const q=projectMap(p);return q[1]>200&&q[0]<275?unprojectMap(registerLakePoint(q)):p;});
+// Restore the known internal junction after the lakeside alignment changed.
+// Only this source-confirmed junction is snapped; unrelated dead ends stay put.
+const southOneRoad=rawRoads.find(r=>r.name==='知行大道（南1门段）')!;
+const oldEnd=projectMap(southOneRoad.points.at(-1)!);
+let southOneJoin:Point=oldEnd,southOneDistance=Infinity;
+for(let i=1;i<lakeRoad.points.length;i++){
+ const a=projectMap(lakeRoad.points[i-1]),b=projectMap(lakeRoad.points[i]),dx=b[0]-a[0],dz=b[1]-a[1];
+ const t=Math.max(0,Math.min(1,((oldEnd[0]-a[0])*dx+(oldEnd[1]-a[1])*dz)/(dx*dx+dz*dz)));
+ const p:Point=[a[0]+dx*t,a[1]+dz*t],d=Math.hypot(p[0]-oldEnd[0],p[1]-oldEnd[1]);
+ if(d<southOneDistance){southOneDistance=d;southOneJoin=p;}
+}
+southOneRoad.points[southOneRoad.points.length-1]=unprojectMap(southOneJoin);
 function ringDistance(p:Point){
  return Math.min(...middleRing.slice(1).map((b,i)=>{
   const a=middleRing[i],dx=b[0]-a[0],dz=b[1]-a[1];
@@ -130,7 +190,11 @@ function ringDistance(p:Point){
   return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dz);
  }));
 }
-export const roads:typeof roadGuides=rawRoads.flatMap((road,index)=>{
+const replacedResidential=/^(西区东西主路|西区宿舍|西区五六栋|西三食堂南侧路|东苑|东区宿舍)/;
+rawRoads[1].points[rawRoads[1].points.length-1]=unprojectMap([867.634,173.718]);
+const calibratedRoads=[...rawRoads.filter(r=>!replacedResidential.test(r.name??'')),...planningResidentialRoads,
+ {...route('西区东门连接路',7,[[-259.8,-204.5],[-256.789,-197.427]]),points:moveDistrict(ground([[-259.8,-204.5],[-256.789,-197.427]]),'west')}];
+export const roads:typeof roadGuides=calibratedRoads.flatMap((road,index)=>{
  if(road.name==='国医东路'||road.name==='大学城广工二路'){
   const p=projectMap(road.points[0]);let nearest:Point=middleRing[0],distance=Infinity;
   for(let i=1;i<middleRing.length;i++){
@@ -143,7 +207,7 @@ export const roads:typeof roadGuides=rawRoads.flatMap((road,index)=>{
  }
  const selected=road.name==='体育馆—网球场连接路';
  if(!selected)return [road];
- const clearance=(road.width*.9+3)/2+(25*.9+3)/2+14;
+ const clearance=(road.width*.9+3)/2+(25*.9+3)/2+2;
  const chunks:Point[][]=[];let chunk:Point[]=[];
  const flush=()=>{if(chunk.length>1)chunks.push(chunk);chunk=[];};
  const line=road.points.map(projectMap);
@@ -161,10 +225,3 @@ export const roads:typeof roadGuides=rawRoads.flatMap((road,index)=>{
  }
  flush();return chunks.map(points=>({...road,points:ground(points)}));
 });
-
-
-
-
-
-
-

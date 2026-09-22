@@ -1,4 +1,8 @@
 import {projectMap,unprojectMap,campusYaw,mapToWorldMatrix,mapProjection} from './projection';
+import {applyPlanningCalibration} from './planningCalibration';
+import {applyAcademicCalibration} from './academicCalibration';
+import {applySportsCalibration} from './sportsCalibration';
+import {registrationDelta} from './planningFrame';
 export type Area = 'academic' | 'east' | 'west';
 export type Category = 'study' | 'living' | 'dining' | 'sports' | 'service' | 'landscape';
 export type Point = [number, number];
@@ -13,6 +17,7 @@ export const areas:Record<Area,{name:string;letter:string;color:string;center:Po
 };
 export const categories:Record<Category,{name:string;color:string}> = {study:{name:'教学科研',color:'#a75545'},living:{name:'住宿',color:'#698675'},dining:{name:'餐饮',color:'#be8b44'},sports:{name:'运动',color:'#638d97'},service:{name:'公共服务',color:'#7b748c'},landscape:{name:'景观',color:'#7c9864'}};
 export const sources:Source[] = [
+ {id:'planning-20241008',title:'大学城校区建筑工程设计方案审查及调整批后公布',url:'https://ghzyj.gz.gov.cn/attachment/7/7699/7699507/9930141.pdf',date:'2024-10-08',usage:'30栋已建学生宿舍轮廓、间距和7F首层架空；生活区道路局部配准；共享平台5处开洞及板球场比例参考。',verification:'2024年批准方案，非当前竣工测绘；局部配准仍使用场景单位，非测绘米数；绿色分类包含水体、园路和铺装。'},
  {id:'amap-20260919',title:'高德地图 · 大学城校区普通图与二维卫星图现场核对',url:'https://www.amap.com/ssr/search',date:'2026-09-19',usage:'主轴北向、图书馆西侧独立足球场及邻接球场关系核对。',verification:'查阅日期不等于影像拍摄日期；屏幕目视比对，非测绘坐标；影像仅留本地研究，不作为网页贴图。'},
  {id:'map',title:'大学城校区地图示意图 · 用户提供的官方 PDF',url:'https://www.gdut.edu.cn/info/1715/23413.htm',date:'2026-01-07',usage:'位置、名称、区域及规划状态的主要依据；研究副本位于 research/，不随网页发布。',verification:'已逐区查看原图；示意坐标，非测绘数据。'},
  {id:'library',title:'大学城校区 · 图书馆日景',url:'https://photo.gdut.edu.cn/info/1294/1959.htm',date:'2020-05-27',usage:'外部体块、凹凸立面、入口与湖边环境参考。',verification:'多视角参考；非逐窗精确复原。'},
@@ -63,8 +68,8 @@ add({id:'central-track',name:'中心田径场',x:594,y:622,w:91,d:60,h:1,kind:'f
 add({id:'south-track',name:'南侧田径场',x:509,y:872,w:106,d:65,h:1,kind:'field',cat:'sports',rotation:yaw+Math.PI/2,description:'官方地图绘有该田径场但未单独命名；「南侧田径场」是本版用于区分场地的描述标签。'});
 add({id:'cricket',name:'板球场',x:234,y:464,w:129,d:92,h:14,kind:'field',cat:'sports',source:'sports'});
 add({id:'tennis',name:'网球场',x:363,y:460,w:81,d:56,h:1,kind:'court',cat:'sports',source:'sports'});
-add({id:'courts-west',name:'体育馆西侧球场',x:392,y:606,w:79,d:53,h:1,kind:'court',cat:'sports',description:'官方图示球场组团，名称为本版方位描述。'});
-add({id:'courts-south',name:'教学区球场',x:464,y:666,w:109,d:56,h:1,kind:'court',cat:'sports',description:'官方图示室外球场组团，具体球场类型以现场为准。'});
+add({id:'courts-west',name:'体育区排球场',x:392,y:606,w:79,d:53,h:1,kind:'court',cat:'sports',description:'体育馆西南侧的排球场组团，东邻篮球场。布局结合批准平面图和用户卫星截图核对。'});
+add({id:'courts-south',name:'体育区篮球场',x:464,y:666,w:109,d:56,h:1,kind:'court',cat:'sports',description:'游泳池与中心田径场南侧的篮球场，分为西、东两个相邻组团。球场细节为示意复原。'});
 add({id:'courts-library',name:'图书馆西侧球场',x:544,y:763,w:40,d:65,h:1,kind:'court',cat:'sports',source:'amap-20260919',description:'图书馆西侧、独立足球场以西的多片小型球场。根据高德二维卫星图校正组团范围；名称为本版方位描述，具体场地类型以现场为准。'});
 add({id:'library-football',name:'图书馆西侧足球场',aliases:['图书馆足球场','北侧足球场'],x:592.33,y:798.67,w:94,d:53,h:1,rotation:yaw+Math.PI/2,kind:'field',cat:'sports',source:'amap-20260919',description:'位于图书馆以西、南侧田径场以北的独立矩形足球场，没有环形跑道。2026-09-19 对照高德普通地图及二维卫星影像补充；使用方位描述名称，尺寸和坐标仍为示意。'});
 // Individual dorm blocks: page ground anchors manually checked against numbered official map.
@@ -116,7 +121,7 @@ places.find(p=>p.id==='west-dining-3')!.position=westDiningThree.position;
 westDiningThree.position=unprojectMap([-294,-158]);
 Object.assign(westDiningThree,{width:42,depth:50,footprint:[[-21,-25],[21,-25],[21,25],[-21,25]]});
 places.find(p=>p.id==='west-dining-3')!.position=westDiningThree.position;
-const valley=unprojectMap([238,23]);
+const valley=unprojectMap([275,70]);
 // Supplied east-district plan: 9/10/11 west of Tiaozhan Road, 4–8 east;
 // 12–14 and dining 2 form the western column around an open central lawn.
 for(const [id,x,z] of [['east-dorm-9',65,-163],['east-dorm-10',65,-205],['east-dorm-11',65,-247],['east-dorm-4',165,-163],['east-dorm-5',165,-205],['east-dorm-6',165,-247],['east-dorm-7',165,-289],['east-dorm-8',165,-331],['east-dorm-12',-44,-247],['east-dorm-13',-44,-289],['east-dorm-14',-44,-331],['east-dining-2',-56,-199],['east-dining-1',180,-375]] as const){
@@ -134,6 +139,25 @@ for(const [id,x,z] of [['innovation-a',354,-114],['truth-a',437,-108],['truth-b'
 const southOne=unprojectMap([-280,130]);
 add({id:'south-one-gate',name:'南1门',aliases:['南一门'],x:southOne[0],y:southOne[1],w:16,d:5,h:4,rotation:.785398,kind:'gate',cat:'service',source:'amap-20260919',description:'知行大道西端出入口。按用户提供高德地图补充道路连接；入口造型、位置和尺寸为示意。'});
 add({id:'innovation-stone',name:'工大创谷景石',aliases:['工大创谷','创谷石'],x:valley[0],y:valley[1],w:29,d:9,h:8,kind:'plaza',cat:'landscape',description:'教学五号楼与三号楼前、图书馆北侧的工大创谷景石。根据用户提供的官方地图局部补充；石体和刻字为示意复原。'});
+// Seven floors include the open ground storey. Keep the estimated total height:
+// a planning floor count alone does not establish a measured height in metres.
+for(const b of buildings){
+ if(!/^b-(east|west)-dorm-/.test(b.id)||b.id==='b-west-dorm-17')continue;
+ b.floors=7;
+ b.heightBasis='2024批准总平面图标注7F、首层架空；总高度仍为示意估计，非测绘高度。';
+ const place=places.find(p=>p.buildingIds.includes(b.id))!;
+ place.sourceIds.push('planning-20241008');
+}
+applyPlanningCalibration(buildings,places);
+applyAcademicCalibration(buildings,places);
+applySportsCalibration(buildings,places);
+for(const area of ['east','west'] as const){const p=toWorld(areas[area].center),d=registrationDelta(area);areas[area].center=unprojectMap([p[0]+d[0],p[1]+d[1]]);}
+// The approved plan shows an almost circular cricket ground. The old
+// illustration-derived 116:83 envelope squeezed it into an east-west oval.
+const cricket=buildings.find(b=>b.id==='b-cricket')!;
+cricket.width=cricket.depth;
+cricket.footprint=[[-cricket.width/2,-cricket.depth/2],[cricket.width/2,-cricket.depth/2],[cricket.width/2,cricket.depth/2],[-cricket.width/2,cricket.depth/2]];
+places.find(p=>p.id==='cricket')!.sourceIds.push('planning-20241008');
 export const tourIds=['library','south-gate','admin','gym','culture'];
 export const sceneConfig={coordinateSystem:'official-illustration-oblique-corrected',projection:mapProjection,mapToWorldMatrix,north:'negative-Z',unit:'schematic',tourIds,defaultTarget:toWorld([651,650])};
 export function normalizeQuery(q:string){const digits:Record<string,number>={'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};return q.trim().toLowerCase().replace(/[\s号栋楼]/g,'').replace(/[零一二三四五六七八九十]+/g,n=>{if(n.includes('十')){const [a,b]=n.split('十');return String((a?digits[a]:1)*10+(b?digits[b]:0));}return [...n].map(c=>digits[c]).join('');});}

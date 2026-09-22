@@ -3,14 +3,20 @@ import {roads} from '../data/landscape';
 import {toWorld} from '../data/campus';
 import {Parts,pathMesh} from './geometry';
 
+export const bridgeX=187;
+const ring=roads.find(r=>r.name==='大学城中环西路')!.points.map(toWorld);
+const segment=ring.slice(1).findIndex((b,i)=>ring[i][0]<=bridgeX&&b[0]>=bridgeX);
+const a=ring[segment],b=ring[segment+1];
+export const bridgeZ=a[1]+(b[1]-a[1])*(bridgeX-a[0])/(b[0]-a[0]);
 export function roadElevation(name:string|undefined,x:number){
+ x-=bridgeX-97;
  if(name!=='大学城中环西路'||x<20||x>175)return .4;
  if(x<68)return .4+(x-20)/48*7.1;
  if(x>126)return .4+(175-x)/49*7.1;
  return 7.5;
 }
 function academicEastJunction(parts:Parts){
- const x=97,z=-50,blue='#1a9ac4',mark='#f3f0df',yellow='#d6ad43';
+ const [x,z]=toWorld(roads.find(r=>r.name==='教学区—东区北联络路')!.points[0]),blue='#1a9ac4',mark='#f3f0df',yellow='#d6ad43';
  // The supplied aerial shows blue cycle-priority aprons on all four corners.
  for(const sx of [-1,1])for(const sz of [-1,1]){
   parts.box(7.2,.035,5.2,x+sx*8.0,.47,z+sz*6.8,blue);
@@ -50,7 +56,7 @@ export function makeRoadNetwork(){
   for(let x=286;x<=327;x+=4.1)parts.box(.18,1.1,.18,x,.95,z,'#dce0d6');
  }
  // 广工天桥: supports leave the complete Tiaozhan Road corridor open.
- for(const x of [67,128])for(const z of [-103,-83])parts.box(1.4,6.3,1.4,x,3.15,z,'#b7bdb4');
- for(const z of [-105,-81])parts.beam([68,7.8,z],[126,7.8,z],.25,'#dce0d6');
+ for(const x of [bridgeX-30,bridgeX+31])for(const z of [bridgeZ-10,bridgeZ+10])parts.box(1.4,6.3,1.4,x,3.15,z,'#b7bdb4');
+ for(const z of [bridgeZ-12,bridgeZ+12])parts.beam([bridgeX-29,7.8,z],[bridgeX+29,7.8,z],.25,'#dce0d6');
  group.add(parts.finish());group.name='roads-with-GDUT-overpass';return group;
 }

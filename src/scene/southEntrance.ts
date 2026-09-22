@@ -8,6 +8,25 @@ const stone='#c4bbaa',light='#ebe7dc',glass='#52696a',metal='#bac4be';
 // Sparse plaza planting read from the user's overhead crop; these are local
 // coordinates below the stair garden, not a procedural grove over the square.
 export const entrancePlazaTrees=[{x:88,z:86,r:2.9},{x:85,z:99,r:2.5},{x:92,z:112,r:2.6},{x:122,z:86,r:3.1},{x:133,z:98,r:2.5},{x:158,z:81,r:3},{x:158,z:89,r:2.5},{x:162,z:98,r:2.4}];
+
+// Two rows of independent poles in front of/alongside the tall colonnade.
+// Heights and spacing are fitted to the photograph, not surveyed dimensions.
+export const entranceFlags=[
+ ...Array.from({length:16},(_,i)=>({x:84+i*5.15,z:33,h:19+(i%4)*1.8,y:4.8,color:['#cf3337','#dfb43b','#408963','#349ec1'][i%4]})),
+ ...Array.from({length:8},(_,i)=>({x:174,z:38+i*4.5,h:22+(i%3)*2.2,y:.5,color:['#d6b032','#3194be','#45956b','#cf3337'][i%4]})),
+];
+function makeEntranceFlags(p:Parts){
+ for(const [i,f] of entranceFlags.entries()){
+  p.cylinder(.95,1.5,f.x,f.y+.75,f.z,'#949b96',.48,4);
+  p.cylinder(.11,f.h,f.x,f.y+f.h/2,f.z,'#b9c5c4',.075,8);
+  p.cylinder(.18,.25,f.x,f.y+f.h+.12,f.z,'#d7d8c6',.18,8);
+  const flag=new T.PlaneGeometry(3.4,2.0,8,3),pos=flag.getAttribute('position');
+  for(let j=0;j<pos.count;j++){const t=(pos.getX(j)+1.7)/3.4;pos.setX(j,t*3.4);pos.setZ(j,Math.sin(t*Math.PI*2+i*.8)*.35*t);}
+  flag.computeVertexNormals();const reverse=flag.clone(),index=reverse.index!;
+  for(let j=0;j<index.count;j+=3){const a=index.getX(j);index.setX(j,index.getX(j+2));index.setX(j+2,a);}reverse.computeVertexNormals();
+  p.add(flag,f.color,[f.x,f.y+f.h-1.3,f.z]);p.add(reverse,f.color,[f.x,f.y+f.h-1.3,f.z]);
+ }
+}
 type P3=[number,number,number];
 function localPosition(origin:Building,target:Building):[number,number]{const a=toWorld(origin.position),b=toWorld(target.position),x=b[0]-a[0],z=b[1]-a[1],c=Math.cos(origin.rotation),s=Math.sin(origin.rotation);return [x*c-z*s,x*s+z*c];}
 function rail(p:Parts,a:P3,b:P3,height=1.1){for(let i=0;i<3;i++)p.beam([a[0],a[1]+.3+i*.35,a[2]],[b[0],b[1]+.3+i*.35,b[2]],.09,light);const n=Math.ceil(Math.hypot(b[0]-a[0],b[2]-a[2])/3.3);for(let i=0;i<=n;i++){const t=i/n;p.box(.1,height,.1,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+height/2,a[2]+(b[2]-a[2])*t,light);}}
@@ -38,19 +57,24 @@ export function makeEntranceOffice(b:Building,p:Parts){
  const [worldX]=toWorld(b.position);
  const engineering=buildings.find(v=>v.id==='b-engineering-1')!;
  const engineeringWest=toWorld(engineering.position)[0]-engineering.width/2;
- const extension=(b.id==='b-admin'?408:engineeringWest)-worldX;
- lattice(p,-w/2-1,extension,-d*.63,d*.63,h+5.8);
+ const meeting=buildings.find(v=>v.id==='b-conference')!;
+ const [meetingX,meetingZ]=toWorld(meeting.position),[,officeZ]=toWorld(b.position);
+ // The satellite/entrance photo shows only the western half of the meeting
+ // centre under the tall lattice. Its eastern half projects beyond the edge.
+ const extension=(b.id==='b-admin'?meetingX:engineeringWest)-worldX;
+ const frontRow=b.id==='b-admin'?Math.max(d*.62,meetingZ-officeZ+meeting.depth/2+2.5):d*.62;
+ lattice(p,-w/2-1,extension,-d*.63,frontRow+.3,h+5.8);
  const supports=(b.id==='b-admin'?[w/2+14,extension-13,extension]:[310-worldX,352-worldX,374-worldX,engineeringWest-worldX]).filter(x=>Math.abs(toWorld(b.position)[0]+x-335)>10);
- for(const x of supports)for(const z of [-d*.62,d*.62]){
+ for(const x of supports)for(const z of [-d*.62,frontRow]){
   column(p,x,z,h+5.1);
   p.beam([x,h+4.3,z],[x-5,h+5.5,z],.27,metal);
  }
  if(b.id==='b-admin'){
   // A forward roof strip continues to the right lawn edge, clear of the
   // neighbouring engineering block behind it. Tall columns remain on land.
-  const front=29,west=350-worldX,east=414-worldX;
-  lattice(p,west,east,d*.63,front,h+5.8);
-  for(const x of [350,364,378,392,406,413]){
+  const front=Math.max(29,frontRow+1),west=350-worldX,east=extension;
+  lattice(p,west,east,frontRow+.3,front,h+5.8);
+  for(const x of [350,364,378,392,406,413,meetingX]){
    column(p,x-worldX,front-.4,h+5.1);
    p.beam([x-worldX,h+4.3,front-.4],[x-worldX-4,h+5.5,front-.4],.27,metal);
   }
@@ -85,10 +109,7 @@ export function makeEntranceOffice(b:Building,p:Parts){
    const crown=new T.IcosahedronGeometry(tree.r,1);crown.scale(1,1.1,.9);
    p.add(crown,['#72916c','#809d72','#688868'][i%3],[tree.x,6.2,tree.z]);
   }
-  for(let i=0;i<9;i++){
-   const x=86+i*7;p.cylinder(.13,16,x,11.5,33,metal,.13,8);
-   p.box(2.1,1.5,.07,x+1.15,18.9,33,['#aa3e39','#b18c3a','#618a87'][i%3]);
-  }
+  makeEntranceFlags(p);
   inscriptionRock(p,147.5,front-1);
  }
 }
