@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {Parts} from './geometry';
 import {openRail} from './facadeDetails';
+import {gymUpperSlab} from './gymPlatform';
 import glyphs from '../data/culture-motto.json';
 
 const white='#ebece4',tile='#479aaa',line='#225766';
@@ -21,12 +22,14 @@ export function poolDeck(p:Parts,w:number,d:number,sw:number,sd:number,x:number,
  for(const r of rects)p.box(r.x1-r.x0,.75,r.z1-r.z0,(r.x0+r.x1)/2,3,(r.z0+r.z1)/2,white);
 }
 
-function inscription(p:Parts,text:string,x:number,y:number,z:number){
+function inscription(p:Parts,text:string,x:number,y:number,z:number,facing:1|-1){
  [...text].forEach((ch,i)=>{
   const path=new T.ShapePath();
   for(const [op,...args] of glyphs.glyphs[ch as keyof typeof glyphs.glyphs]){const a=args as number[];if(op==='M')path.moveTo(a[0],a[1]);else if(op==='L')path.lineTo(a[0],a[1]);else if(op==='Q')path.quadraticCurveTo(a[0],a[1],a[2],a[3]);else if(op==='C')path.bezierCurveTo(a[0],a[1],a[2],a[3],a[4],a[5]);else if(op==='Z')path.currentPath?.closePath();}
   const g=new T.ShapeGeometry(path.toShapes(false));g.scale(.95/glyphs.em,.95/glyphs.em,1);g.computeBoundingBox();const b=g.boundingBox!;
-  const xx=x+(i-1.5)*5;p.box(1.25,1.25,.08,xx,y+.45,z,'#a25b51');p.add(g,white,[xx-(b.min.x+b.max.x)/2,y-b.min.y,z+.05]);
+  const xx=x+facing*(i-1.5)*5;
+  p.box(1.25,1.25,.08,xx,y+.45,z,'#a25b51');
+  p.add(g,white,[xx-facing*(b.min.x+b.max.x)/2,y-b.min.y,z+facing*.05],[0,facing===1?0:Math.PI,0]);
  });
 }
 
@@ -75,11 +78,18 @@ export function makePoolDetails(p:Parts,w:number,d:number){
   for(let j=-3;j<=3;j++)p.box(.05,1.9,.09,x+j*.33,4.8,back+2.32,white);
  }
  for(const y of [6.8,10.1]){
-  p.box(x1-x0,.32,front-back,(x0+x1)/2,y,(front+back)/2,white);
-  openRail(p,[x0,y+.17,front],[x1,y+.17,front],white);
+  if(y===10.1)gymUpperSlab(p,w,d,x0,x1,back,front,.32);
+  else p.box(x1-x0,.32,front-back,(x0+x1)/2,y,(front+back)/2,white);
+  const railY=y===10.1?y:y+.17;
+  openRail(p,[x0,railY,front],[x1,railY,front],white);
  }
  for(let x=x0;x<=x1+.1;x+=(x1-x0)/10)p.box(.38,6.6,.38,x,6.675,front-.4,white);
- inscription(p,'文明游泳',(x0+x1)/2,5.6,front+.02);
+ // The inscription belongs across the water, on the basketball-court side.
+ // Its face points north into the pool; reverse placement as well as rotation
+ // so the four characters remain readable from inside the swimming area.
+ const opposite=d*.95;
+ p.box(x1-x0,1.65,.34,(x0+x1)/2,6.175,opposite,white);
+ inscription(p,'文明游泳',(x0+x1)/2,5.6,opposite-.22,-1);
  // Low blue spectator steps on the west side, with white horizontal rails.
  for(let row=0;row<5;row++)p.box(.85,.36,d*.47,x0-1-row*.86,3.55+row*.4,d*.63,'#486f84');
  openRail(p,[x0-5,5.3,d*.39],[x0-5,5.3,d*.87],white);

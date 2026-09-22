@@ -1,6 +1,7 @@
 import {studentDorm} from './studentDorm';
 import {technologyBuilding,structureBuilding} from './technologyBuildings';
 import {makeGym,makeCricket} from './sportsLandmarks';
+import {makeAthleticsTrack} from './athleticsTrack';
 import {makeEntranceOffice,makeSouthGate} from './southEntrance';
 import {detailedDining,detailedTeaching,conference} from './pdfDetails';
 import * as T from 'three';
@@ -135,6 +136,7 @@ function football(b:Building,p:Parts,group:T.Group){
 function sports(b:Building,p:Parts,group:T.Group){const {width:w,depth:d}=b;
  if(b.id==='b-courts-west'||b.id==='b-courts-south'){makeOutdoorCourts(b,p,group);return;}
  if(b.id==='b-library-football'){football(b,p,group);return;}
+ if(b.id==='b-central-track'){makeAthleticsTrack(b,p,group);return;}
  if(b.id==='b-courts-library'){
   p.box(w,.5,d,0,.3,0,'#7c9599');
   for(let i=0;i<3;i++)for(let j=0;j<2;j++){

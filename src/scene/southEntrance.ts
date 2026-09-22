@@ -5,6 +5,7 @@ import {buildings,toWorld,type Building} from '../data/campus';
 import inscription from '../data/gate-inscription.json';
 import {mullionedWindow} from './facadeDetails';
 import {makeEntranceGardens} from './entranceGardens';
+import {officeFlowerBox,officeSign,officePlatformStair} from './officeDetails';
 
 const stone='#c4bbaa',light='#ebe7dc',glass='#52696a',metal='#bac4be';
 // Sparse plaza planting read from the user's overhead crop; these are local
@@ -55,7 +56,7 @@ function waterfrontOfficeDeck(p:Parts,w:number,d:number,y:number){
 }
 type P3=[number,number,number];
 function localPosition(origin:Building,target:Building):[number,number]{const a=toWorld(origin.position),b=toWorld(target.position),x=b[0]-a[0],z=b[1]-a[1],c=Math.cos(origin.rotation),s=Math.sin(origin.rotation);return [x*c-z*s,x*s+z*c];}
-function rail(p:Parts,a:P3,b:P3,height=1.1){for(let i=0;i<3;i++)p.beam([a[0],a[1]+.3+i*.35,a[2]],[b[0],b[1]+.3+i*.35,b[2]],.09,light);const n=Math.ceil(Math.hypot(b[0]-a[0],b[2]-a[2])/3.3);for(let i=0;i<=n;i++){const t=i/n;p.box(.1,height,.1,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+height/2,a[2]+(b[2]-a[2])*t,light);}}
+function rail(p:Parts,a:P3,b:P3,height=1.1){for(let i=0;i<4;i++)p.beam([a[0],a[1]+.22+i*.26,a[2]],[b[0],b[1]+.22+i*.26,b[2]],.09,light);const n=Math.ceil(Math.hypot(b[0]-a[0],b[2]-a[2])/3.3);for(let i=0;i<=n;i++){const t=i/n;p.box(.1,height,.1,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+height/2,a[2]+(b[2]-a[2])*t,light);}}
 function column(p:Parts,x:number,z:number,h:number){p.cylinder(.74,h,x,h/2,z,stone,.74,12);for(let j=1;j<18;j++)p.cylinder(.75,.045,x,j*h/18,z,'#b2ad9f',.75,12);p.box(1.5,.8,1.5,x,h-.1,z,metal);}
 function lattice(p:Parts,x0:number,x1:number,z0:number,z1:number,y:number,opening?:{width:number;depth:number}){
  for(const z of [z0,z1]){p.box(x1-x0,.78,.6,(x0+x1)/2,y,z,metal);rail(p,[x0,y+.4,z],[x1,y+.4,z],1);}
@@ -84,16 +85,40 @@ export function makeEntranceOffice(b:Building,p:Parts){
   }
   courtyardMass(p,coreW+5,coreD+5,holes,.45,y,light);
   for(const side of [-1,1]){
-   rail(p,[-coreW/2-2.35,y+.25,side*(coreD/2+2.35)],[coreW/2+2.35,y+.25,side*(coreD/2+2.35)],1.05);
-   rail(p,[side*(coreW/2+2.35),y+.25,-coreD/2-2.35],[side*(coreW/2+2.35),y+.25,coreD/2+2.35],1.05);
+   const edge=coreD/2+2.35,left=-coreW/2-2.35,right=coreW/2+2.35;
+   if(b.id==='b-admin'&&f>0){
+    // Alternate projecting bays break the previously flat balcony silhouette.
+    const bayW=coreW*.22,centers=f%2?[-coreW*.29,coreW*.20]:[-coreW*.12,coreW*.33];
+    let start=left;
+    for(const x of centers){
+     const a=x-bayW/2,q=x+bayW/2,out=edge+1.3;
+     rail(p,[start,y+.25,side*edge],[a,y+.25,side*edge]);
+     p.box(bayW,.45,1.5,x,y+.225,side*(edge+.65),light);
+     rail(p,[a,y+.25,side*edge],[a,y+.25,side*out]);
+     rail(p,[a,y+.25,side*out],[q,y+.25,side*out]);
+     rail(p,[q,y+.25,side*out],[q,y+.25,side*edge]);
+     officeFlowerBox(p,x,y+.45,side*(out-.35),bayW-.5,(f+Math.round(x))%2===0);
+     start=q;
+    }
+    rail(p,[start,y+.25,side*edge],[right,y+.25,side*edge]);
+   }else rail(p,[left,y+.25,side*edge],[right,y+.25,side*edge],1.05);
+   if(b.id==='b-admin'&&side===1&&f===1){
+    const z=coreD*.15;rail(p,[right,y+.25,-edge],[right,y+.25,z-3.2]);rail(p,[right,y+.25,z+3.2],[right,y+.25,edge]);
+   }else rail(p,[side*(coreW/2+2.35),y+.25,-edge],[side*(coreW/2+2.35),y+.25,edge],1.05);
   }
   // Small shrubs are rooted in balcony planters, below the next storey's slab.
-  if(f===3||f===4)for(const x of [-coreW*.32,coreW*.28]){
+  if(b.id!=='b-admin'&&(f===3||f===4))for(const x of [-coreW*.32,coreW*.28]){
    const z=coreD/2+1.3;p.box(2,.55,.85,x,y+.52,z,'#adae95');
    const shrub=new T.IcosahedronGeometry(.7,0);shrub.scale(1.2,.8,.58);p.add(shrub,'#76946a',[x,y+1.1,z]);
   }
  }
  courtyardMass(p,coreW+1,coreD+1,holes,.55,h+.1,'#aab5af');
+ if(b.id==='b-admin'){
+  officePlatformStair(p,coreW,coreD,base+step+.45);
+  officeSign(p,coreW*.30,base+step*2,coreD/2+3.8);
+  for(const side of [-1,1])for(const x of [-coreW*.32,0,coreW*.32])officeFlowerBox(p,x,h+.4,side*(coreD/2-.15),coreW*.24,side===1);
+ }
+
  for(const side of [-1,1]){p.box(coreW*.55,.55,.25,0,h+.7,side*coreD*.19,light);p.box(.25,.55,coreD*.38,side*coreW*.275,h+.7,0,light);}
  for(let j=0;j<=8;j++)for(const z of [-d*.62,d*.62])column(p,-w/2+j*w/8,z,h+5.1);
  // The front colonnade stands behind the three lawn slopes. The auditorium

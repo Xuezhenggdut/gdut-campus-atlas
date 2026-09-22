@@ -48,7 +48,11 @@ test('pool water remains open to the sky and the concourse reaches the stand rea
  const top=(x:number,z:number,height=40)=>new T.Raycaster(new T.Vector3(x,height,z),new T.Vector3(0,-1,0)).intersectObject(g,true)[0]?.point.y;
  for(const x of [b.width*.3,b.width*.63])assert(Math.abs(top(x+.45,b.depth*.62+.25)!-poolWaterY)<.06,'no roof or concourse covers pool water');
  const rear=toWorld(track.position)[0]-toWorld(b.position)[0]-track.depth/2-2.8-22*.86-1;
- for(let x=b.width*.78+.5;x<rear;x+=1)assert(Math.abs(top(x,0,8)!-3.375)<.01,'raised concourse has no gap before the grandstand');
+ for(let x=b.width*.78+.5;x<rear;x+=1){
+  assert(Math.abs(top(x,0,6.5)!-3.375)<.01,'lower concourse has no gap before the grandstand');
+  const upper=top(x,0,12)!;
+  assert(upper>=10.09&&upper<=10.51,'upper platform continues into the slightly higher grandstand landing');
+ }
  disposeTree(g);
 });
 test('west perimeter water is present; residential waterways do not cover building anchors',()=>{

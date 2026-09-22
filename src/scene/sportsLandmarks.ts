@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {Parts} from './geometry';
+import {makeGymPlatform,gymPlatformY,gymUpperSlab} from './gymPlatform';
 import {buildings,toWorld,type Building} from '../data/campus';
 import {openRail} from './facadeDetails';
 import {poolDeck,makePoolDetails,makeTrackGallery} from './poolDetails';
@@ -58,14 +59,14 @@ function grandstand(b:Building,p:Parts){
   const center=tz-cover/2+(bay+.5)*span,verts:number[]=[],ix:number[]=[];
   for(let i=0;i<=8;i++)for(let j=0;j<=8;j++){
    const u=i/8,v=j/8*2-1;
-   const peak=Math.pow(Math.max(0,Math.sin(Math.PI*u)*(1-v*v)),.65);
-   verts.push(back-14+u*18,13.1+peak*7.6+(1-u)*1.0,center+v*span/2);
+   const peak=Math.pow(1-u,1.1)*Math.pow(Math.max(0,1-v*v),.65);
+   verts.push(back-8+u*13,12.8+(1-u)*.5+peak*8,center+v*span/2);
    if(i<8&&j<8){const k=i*9+j;ix.push(k,k+1,k+9,k+1,k+10,k+9);}
   }
   surface(p,verts,ix,white,true);
-  p.cylinder(.23,24,back-5,12,center,steel,.18,8);
-  p.beam([back-5,24,center],[back-14,14.1,center-span/2],.10,steel);
-  p.beam([back-5,24,center],[back+4,13.1,center+span/2],.10,steel);
+  p.cylinder(.23,24,back-8,12,center,steel,.18,8);
+  p.beam([back-8,24,center],[back-8,13.3,center-span/2],.10,steel);
+  p.beam([back-8,24,center],[back+5,12.8,center+span/2],.10,steel);
  }
  for(const side of [-1,1]){
   const z=tz+side*(len/2+2);for(let j=0;j<24;j++)p.box(.8,.38,4.2,front-j*.82,.8+j*.42,z,white);
@@ -81,11 +82,23 @@ export function makeGym(b:Building,p:Parts){
  poolDeck(p,w,d,w*1.22,d*1.45,-w*.06,d*.04);
  for(let x=-w*.63;x<w*.55;x+=7.5)for(const z of [-d*.68,d*.72])p.box(.6,3,.6,x,1.5,z,slab);
  const cx=-w*.05,cz=-d*.24,hw=w*.75,hd=d*.75;
- p.box(hw,11.8,hd,cx,9,cz,'#d2d1c5');
- for(const side of [-1,1]){p.box(hw,2.4,.25,cx,14.3,cz+side*hd/2,'#45626a');p.box(.25,2.4,hd,cx+side*hw/2,14.3,cz,'#45626a');}
- for(let i=0;i<=16;i++)for(const side of [-1,1])p.box(.35,3.2,.45,cx-hw/2+i*hw/16,14.3,cz+side*hd/2,white);
- for(let i=0;i<=10;i++)for(const side of [-1,1])p.box(.45,3.2,.35,cx+side*hw/2,14.3,cz-hd/2+i*hd/10,white);
- const rw=hw+7,rd=hd+6,low=16.2,high=18.0;
+ // The hall rises above the open platform, with splayed horizontal fins.
+ const bottom=gymPlatformY+.15,upper=18.8,bw=hw*.82,bd=hd*.82;
+ const body=[cx-bw/2,bottom,cz-bd/2,cx-bw/2,bottom,cz+bd/2,cx+bw/2,bottom,cz+bd/2,cx+bw/2,bottom,cz-bd/2,cx-hw/2,upper,cz-hd/2,cx-hw/2,upper,cz+hd/2,cx+hw/2,upper,cz+hd/2,cx+hw/2,upper,cz-hd/2];
+ surface(p,body,[0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7],'#45626a');
+ for(let row=0;row<=10;row++){
+  const t=row/10,ww=bw+(hw-bw)*t,dd=bd+(hd-bd)*t,y=bottom+(upper-bottom)*t;
+  for(const side of [-1,1]){
+   p.box(ww+.6,.20,.50,cx,y,cz+side*dd/2,white);
+   p.box(.50,.20,dd+.6,cx+side*ww/2,y,cz,white);
+  }
+ }
+ p.box(hw,.4,hd,cx,19.05,cz,white);
+ for(const side of [-1,1]){
+  openRail(p,[cx-hw/2,19.25,cz+side*hd/2],[cx+hw/2,19.25,cz+side*hd/2],white);
+  openRail(p,[cx+side*hw/2,19.25,cz-hd/2],[cx+side*hw/2,19.25,cz+hd/2],white);
+ }
+ const rw=hw+7,rd=hd+6,low=20.3,high=22.1;
  const vs=[cx-rw/2,low,cz-rd/2,cx-rw/2,low,cz+rd/2,cx+rw/2,low,cz+rd/2,cx+rw/2,low,cz-rd/2,cx-rw*.25,high,cz-rd*.21,cx-rw*.25,high,cz+rd*.21,cx+rw*.25,high,cz+rd*.21,cx+rw*.25,high,cz-rd*.21];
  surface(p,vs,[0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7],'#9aadb0',true);
  for(let i=0;i<=8;i++){const f=i/8,xx=rw/2*(1-f*.5),zz=rd/2*(1-f*.58),yy=low+(high-low)*f+.08;line(p,[[cx-xx,yy,cz-zz],[cx-xx,yy,cz+zz],[cx+xx,yy,cz+zz],[cx+xx,yy,cz-zz],[cx-xx,yy,cz-zz]],.17,white);}
@@ -95,6 +108,7 @@ export function makeGym(b:Building,p:Parts){
  p.box(w*.54,.75,d*.90,w*.54,3,-d*.18,white);
  poolDeck(p,w,d,w*.64,d*.66,w*.46,d*.62);
  makePoolDetails(p,w,d);
+ makeGymPlatform(p,w,d);
  // Aerial: an open white frame encloses the two pool decks. No opaque
  // roof spans the water; the divider sits in the paved gap between pools.
  const poolX0=w*.14,poolX1=w*.78,poolZ0=d*.29,poolZ1=d*.95,frameY=7.2;
@@ -116,14 +130,16 @@ export function makeGym(b:Building,p:Parts){
  const deckX=w*.78,deckEnd=standBack-1,deckZ0=-d*.63,deckZ1=poolZ1;
  if(deckEnd>deckX){
   p.box(deckEnd-deckX,.75,deckZ1-deckZ0,(deckX+deckEnd)/2,3,(deckZ0+deckZ1)/2,white);
+  gymUpperSlab(p,w,d,deckX,deckEnd,deckZ0,deckZ1,.45);
+  // Upper deck links directly into the back of the stand. Columns preserve
+  // the lower concourse rather than filling the whole platform down to grade.
+  for(let x=deckX+1;x<deckEnd;x+=8)for(let z=deckZ0+1;z<deckZ1;z+=10)p.box(.48,gymPlatformY-3.825,.48,x,(gymPlatformY+2.925)/2,z,slab);
   for(const z of [deckZ0,deckZ1]){
+   openRail(p,[deckX,gymPlatformY,z],[deckEnd,gymPlatformY,z],white);
    openRail(p,[deckX,3.4,z],[deckEnd,3.4,z],white);
    for(let x=deckX;x<deckEnd;x+=6)p.box(.5,2.625,.5,x,1.3125,z,slab);
   }
  }
- // Skylight grid and low stairs on the open concourse, visible in the PDF.
- for(let i=0;i<5;i++)for(let j=0;j<4;j++)p.box(1.1,.3,1.1,w*.39-i*3.1,3.75,-d*.36+j*5.5,'#7eabbb');
- for(const z of [-d*.48,-d*.08,d*.18])p.box(7,1.1,2.7,w*.35,4.0,z,slab);
  for(let i=0;i<8;i++)p.box(w*.58,.32,.72,-w*.07,.4+i*.38,d*.84-i*.75,white);
  grandstand(b,p);
  makeTrackGallery(p,tx,dx*Math.sin(b.rotation)+dz*Math.cos(b.rotation),track.width,track.depth,w);

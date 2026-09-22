@@ -22,6 +22,7 @@ for filename, fontname, text in [
     ('library-inscription.json', 'STKAITI.TTF', '圖書館'),
     ('gate-inscription.json', 'STXINGKA.TTF', '广东工业大学'),
     ('culture-motto.json', 'STXINGKA.TTF', '以美育人文化明游泳'),
+    ('office-inscription.json', 'simhei.ttf', '行政楼'),
 ]:
     font = TTFont(Path('C:/Windows/Fonts') / fontname)
     glyphset, cmap = font.getGlyphSet(), font.getBestCmap()
