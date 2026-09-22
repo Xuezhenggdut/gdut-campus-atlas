@@ -6,6 +6,7 @@ import {planningResidentialRoads} from './planningCalibration';
 import {mergeWaterBoundary} from './waterBoundary';
 import {registrationDelta,pdfToWorld} from './planningFrame';
 import {registerLakePoint} from './waterRegistration';
+import {eastBoundaryNorth,eastBoundarySouth,eastBoundaryAt,eastMiddleJunctionZ,clipToEastBoundary} from './eastBoundary';
 const moveDistrict=(points:Point[],region:'east'|'west')=>points.map(p=>{const q=projectMap(p),d=registrationDelta(region);return unprojectMap([q[0]+d[0],q[1]+d[1]]);});
 const ground=(points:Point[])=>points.map(unprojectMap);
 export const landPolygons:Point[][]=[
@@ -16,6 +17,7 @@ export const landPolygons:Point[][]=[
 ];
 landPolygons[0]=moveDistrict(landPolygons[0],'west');
 landPolygons[1]=moveDistrict(landPolygons[1],'east');
+for(const i of [1,2])landPolygons[i]=ground(clipToEastBoundary(landPolygons[i].map(projectMap)));
 // Extend the eastern ground envelope with the calibrated research plots.
 landPolygons.push(ground([[590,0],[705,0],[875,173],[810,285],[630,400],[570,345]]));
 // Banks follow the outside of the library's full stair/forecourt envelope.
@@ -154,6 +156,7 @@ rawRoads[1].points=rawRoads[1].points.map(p=>{const [x,z]=projectMap(p),t=Math.m
  const west=registrationDelta('west'),east=registrationDelta('east'),u=Math.max(0,Math.min(1,(x+220)/320));
  return unprojectMap([x+t*(west[0]*(1-u)+east[0]*u),z+t*(west[1]*(1-u)+east[1]*u)]);
 });
+rawRoads[1].points=[...rawRoads[1].points.slice(0,9),...ground([eastBoundaryNorth,eastBoundaryAt(eastMiddleJunctionZ),eastBoundarySouth])];
 rawRoads[0].points[rawRoads[0].points.length-1]=rawRoads[1].points.at(-2)!;
 const middleRing=rawRoads[0].points.map(projectMap);
 // Both reference maps show Guoyi West Road meeting the public perimeter at
@@ -201,11 +204,9 @@ function ringDistance(p:Point){
  }));
 }
 const replacedResidential=/^(西区东西主路|西区宿舍|西区五六栋|西三食堂南侧路|东苑|东区宿舍)/;
-rawRoads[1].points[rawRoads[1].points.length-1]=unprojectMap([867.634,173.718]);
 // Carry the straight avenue through the east gate to the existing public road.
-const publicEast=rawRoads[1].points.slice(-2).map(projectMap),avenue=rawRoads.find(r=>r.name==='知行大道')!;
-const eastT=(33-publicEast[0][1])/(publicEast[1][1]-publicEast[0][1]);
-avenue.points[avenue.points.length-1]=unprojectMap([publicEast[0][0]+eastT*(publicEast[1][0]-publicEast[0][0]),33]);
+const avenue=rawRoads.find(r=>r.name==='知行大道')!;
+avenue.points[avenue.points.length-1]=unprojectMap(eastBoundaryAt(33));
 const calibratedRoads=[...rawRoads.filter(r=>!replacedResidential.test(r.name??'')),...planningResidentialRoads,
  {...route('西区东门连接路',7,[[-259.8,-204.5],[-256.789,-197.427]]),points:moveDistrict(ground([[-259.8,-204.5],[-256.789,-197.427]]),'west')}];
 export const roads:typeof roadGuides=calibratedRoads.flatMap((road,index)=>{

@@ -1,6 +1,7 @@
 import type {Building,Place} from './campus';
 import {pdfToWorld} from './planningFrame';
 import {unprojectMap} from './projection';
+import {eastBoundaryAt} from './eastBoundary';
 // Full-page PDF points, taken from the sports and water detail crops. Widths
 // are simplified ground envelopes, not survey measurements or roof extents.
 export const sportsAnchors=[
@@ -33,7 +34,7 @@ export function applySportsCalibration(buildings:Building[],places:Place[]){
   for(const p of places.filter(p=>b.placeIds.includes(p.id)))p.position=b.position;
  }
  const gate=buildings.find(b=>b.id==='b-east-gate')!;
- gate.position=unprojectMap([689,33]);gate.rotation=Math.PI/2;
+ gate.position=unprojectMap([eastBoundaryAt(33)[0]-21,33]);gate.rotation=Math.PI/2;
  for(const p of places.filter(p=>gate.placeIds.includes(p.id)))p.position=gate.position;
  // The legacy illustration coordinate put the northwest gate on a tennis
  // court. Anchor the schematic entrance to the road junction instead.
