@@ -2,6 +2,7 @@ import * as T from 'three';
 import {Parts} from './geometry';
 import {entrancePodium} from './entrancePodium';
 import {makeValleyPortal} from './teachingEntrance';
+import {makeTeachingLinks} from './teachingLinks';
 import {buildings,places,toWorld,type Area} from '../data/campus';
 
 // Only links explicitly visible in the official drawing; not pedestrian routing data.
@@ -45,14 +46,7 @@ export function makeConnections(area?:Area){const p=new Parts();
   // End supports are placed at the building edges, leaving the road clear.
   for(const [x,z,y] of [[x1,az,y1],[x2,bz,y2]])for(const side of [-1,1])p.box(.65,y,.65,x,y/2,z+side*depth/2,'#e8e8de');
  }
- // High open beams link the two teaching rows and neighboring modules in the drawing.
- if(!area||area==='academic')for(const [aid,bid] of [['teaching-5','teaching-6'],['teaching-3','teaching-4'],['teaching-1','teaching-2'],['teaching-5','teaching-3'],['teaching-6','teaching-4']]){
-  const a=buildings.find(b=>b.id==='b-'+aid)!,b=buildings.find(b=>b.id==='b-'+bid)!;
-  const [ax,az]=toWorld(a.position),[bx,bz]=toWorld(b.position),northSouth=Math.abs(bz-az)>Math.abs(bx-ax),y=Math.min(a.height,b.height)+.35;
-  if(northSouth){const sign=Math.sign(bz-az),z1=az+sign*a.depth*.47,z2=bz-sign*b.depth*.47;
-   for(const side of [-1,1]){const x1=ax+side*a.width*.28,x2=bx+side*b.width*.28;p.beam([x1,y,z1],[x2,y,z2],.48,'#eeeede');}
-  }else{const x1=ax+a.width/2,x2=bx-b.width/2;for(const side of [-1,1])p.beam([x1,y,az+side*a.depth*.3],[x2,y,bz+side*b.depth*.3],.5,'#eeeede');}
- }
+ if(!area||area==='academic')makeTeachingLinks(p);
  // Multi-level open links between the technology blocks, distinct from the
  // roof-only research grids. Endpoints follow each body's edge.
  if(!area||area==='academic')for(const [aid,bid] of [['innovation-b','innovation-a'],['innovation-a','truth-a'],['truth-b','truth-a']]){

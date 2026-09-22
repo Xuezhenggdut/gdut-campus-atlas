@@ -9,6 +9,7 @@ import {makeSportsLighting} from './sportsLighting';
 // Existing glazing only: never make concrete, water or tree materials glow.
 const glazing=new Set(['45626a','74969a','617d80','829c9f','74959a','416973','52696a','849a9d','89a7a6']);
 const libraryIntensity:Record<string,number>={'60777b':.88,'435d64':.24,'99aaa5':2.1,'354d50':.36};
+const libraryScreen=new Set(['727d7d','758181','788383','6f7c7e']);
 export function applyNightEmission(root:T.Object3D,night:boolean){
  root.traverse(o=>{if(!(o instanceof T.Mesh))return;
   for(const m of Array.isArray(o.material)?o.material:[o.material])if((m instanceof T.MeshStandardMaterial||m instanceof T.MeshLambertMaterial)&&glazing.has(m.color.getHexString())){
@@ -17,6 +18,12 @@ export function applyNightEmission(root:T.Object3D,night:boolean){
   for(const m of Array.isArray(o.material)?o.material:[o.material])if(m instanceof T.MeshStandardMaterial||m instanceof T.MeshLambertMaterial){
    const strength=libraryIntensity[m.color.getHexString()];
    if(strength!==undefined){m.emissive.set(night?'#ffdbad':'#000000');m.emissiveIntensity=night?strength:0;}
+   // The metal screen reads as a panel grid by day, with interior light
+   // showing through its perforations at night; the screen itself is unlit.
+   if(libraryScreen.has(m.color.getHexString())){
+    if(m.transparent!==night)m.needsUpdate=true;
+    m.transparent=night;m.opacity=night?.48:1;m.depthWrite=!night;
+   }
   }
  });
 }

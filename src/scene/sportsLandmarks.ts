@@ -2,8 +2,9 @@ import * as T from 'three';
 import {Parts} from './geometry';
 import {buildings,toWorld,type Building} from '../data/campus';
 import {openRail} from './facadeDetails';
+import {poolDeck,makePoolDetails,makeTrackGallery} from './poolDetails';
 
-const white='#ebece4',slab='#c9ccbf',steel='#aebbb5',water='#5e9eae';
+const white='#ebece4',slab='#c9ccbf',steel='#aebbb5';
 type P3=[number,number,number];
 
 // Explicit front/back triangles keep the thin shells visible from underneath.
@@ -77,7 +78,7 @@ function grandstand(b:Building,p:Parts){
 export function makeGym(b:Building,p:Parts){
  const w=b.width,d=b.depth;
  // Low podium with walkways, an inset hall, open roof courts and two pools.
- p.box(w*1.22,.75,d*1.45,-w*.06,3,d*.04,white);
+ poolDeck(p,w,d,w*1.22,d*1.45,-w*.06,d*.04);
  for(let x=-w*.63;x<w*.55;x+=7.5)for(const z of [-d*.68,d*.72])p.box(.6,3,.6,x,1.5,z,slab);
  const cx=-w*.05,cz=-d*.24,hw=w*.75,hd=d*.75;
  p.box(hw,11.8,hd,cx,9,cz,'#d2d1c5');
@@ -92,14 +93,8 @@ export function makeGym(b:Building,p:Parts){
  for(const [z,col] of [[-d*.37,'#68858e'],[-d*.02,'#b96f55']] as const){deckCourt(p,-w*.54,z,w*.20,d*.29,col,3.55);for(const x of [-w*.65,-w*.43])p.box(.16,2.8,.16,x,5,z,steel);}
  // East concourse links the hall to the west stand; pools occupy its southern side.
  p.box(w*.54,.75,d*.90,w*.54,3,-d*.18,white);
- // Pools run north-south, side by side east-west. Lane ropes follow that long axis.
- for(const x of [w*.30,w*.63]){
-  const z=d*.62,pw=w*.23,pd=d*.54;
-  p.box(pw+2,.45,pd+2,x,3.48,z,white);p.box(pw,.12,pd,x,3.76,z,water);
-  for(let lane=1;lane<7;lane++)p.box(.11,.035,pd*.97,x-pw/2+lane*pw/7,3.84,z,'#e3ebcd');
-  for(const side of [-1,1])for(let lane=1;lane<7;lane++)p.box(.45,.18,.48,x-pw/2+lane*pw/7,3.84,z+side*(pd/2+.4),white);
- }
- p.box(w*.64,.75,d*.66,w*.46,3,d*.62,white);
+ poolDeck(p,w,d,w*.64,d*.66,w*.46,d*.62);
+ makePoolDetails(p,w,d);
  // Aerial: an open white frame encloses the two pool decks. No opaque
  // roof spans the water; the divider sits in the paved gap between pools.
  const poolX0=w*.14,poolX1=w*.78,poolZ0=d*.29,poolZ1=d*.95,frameY=7.2;
@@ -131,6 +126,7 @@ export function makeGym(b:Building,p:Parts){
  for(const z of [-d*.48,-d*.08,d*.18])p.box(7,1.1,2.7,w*.35,4.0,z,slab);
  for(let i=0;i<8;i++)p.box(w*.58,.32,.72,-w*.07,.4+i*.38,d*.84-i*.75,white);
  grandstand(b,p);
+ makeTrackGallery(p,tx,dx*Math.sin(b.rotation)+dz*Math.cos(b.rotation),track.width,track.depth,w);
 }
 
 function ellipseBand(p:Parts,rx:number,rz:number,a0:number,a1:number,r0:number,r1:number,y0:(t:number)=>number,y1:(t:number)=>number,color:string){

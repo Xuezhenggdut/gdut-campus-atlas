@@ -36,7 +36,9 @@ test('library interior glazing lights through a separate unlit metal screen and 
  for(const key of ['60777b','435d64','99aaa5','354d50'])assert((mats.get(key)?.emissiveIntensity??0)>0);
  assert.equal(mats.get('727d7d')!.emissive.getHex(),0,'metal screen must not become a luminous wall');
  assert(mats.get('60777b')!.emissiveIntensity>mats.get('435d64')!.emissiveIntensity,'interior bays retain brightness variation');
- applyNightEmission(g,false);for(const m of mats.values())assert.equal(m.emissive.getHex(),0);disposeTree(g);
+ assert(mats.get('727d7d')!.opacity<1,'interior light remains visible through the screen');
+ applyNightEmission(g,false);for(const m of mats.values())assert.equal(m.emissive.getHex(),0);
+ assert.equal(mats.get('727d7d')!.opacity,1);assert.equal(mats.get('727d7d')!.transparent,false);disposeTree(g);
 });
 
 test('high masts stand outside playing areas and opposing lights aim into each field',()=>{

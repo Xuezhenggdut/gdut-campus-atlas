@@ -3,6 +3,7 @@ import type {Building,Place,Point} from './campus';
 import {planningScale} from './planningCalibration';
 import {teachingPlan,teachingPlanPoint} from './teachingPlan';
 import {registeredCropPoint} from './planningFrame';
+import {teachingFloorHeight} from './teachingLevels';
 
 // Original PDF page clip (770,340)-(1048,595), rendered at 5x.
 // The scale matches the residential tracing. The southern row and western
@@ -51,11 +52,11 @@ export function applyAcademicCalibration(buildings:Building[],places:Place[]){
  // Separate storey annotations on the two rows, rather than six equal-height
  // copies. Retain estimated heights until elevation evidence is available.
  for(const [id,floors] of [['teaching-1',5],['teaching-2',5],['teaching-3',4],['teaching-4',3],['teaching-5',4],['teaching-6',3]] as const){
-  const b=buildings.find(b=>b.id==='b-'+id)!;b.floors=floors;
+  const b=buildings.find(b=>b.id==='b-'+id)!;b.floors=floors;b.height=floors*teachingFloorHeight;
   const [x0,y0,x1,y1]=teachingPlan[b.id].box,width=(x1-x0)*planningScale/5,depth=(y1-y0)*planningScale/5;
   Object.assign(b,{position:unprojectMap(teachingPlanPoint([(x0+x1)/2,(y0+y1)/2])),width,depth,
    footprint:[[-width/2,-depth/2],[width/2,-depth/2],[width/2,depth/2],[-width/2,depth/2]]});
-  b.heightBasis='2024批准平面图楼层标注；总高度保留外观估计。';
+  b.heightBasis='2024批准平面图楼层标注；采用统一示意层高使低层连廊对齐，非实测标高。';
   const p=places.find(p=>p.id===id)!;p.position=b.position;if(!p.sourceIds.includes('planning-20241008'))p.sourceIds.push('planning-20241008');
  }
 }

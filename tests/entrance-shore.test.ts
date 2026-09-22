@@ -24,11 +24,11 @@ test('lake-bank road shoulders and lakeside walks stay on dry land',()=>{
  }
 });
 
-test('south entrance has three planted slopes, a level lower square and a clear western drive',()=>{
+test('south entrance has three planted terrace groups, a level lower square and a clear western drive',()=>{
  const b=buildings.find(v=>v.id==='b-admin')!,g=makeBuilding(b);g.updateMatrixWorld(true);
  const [x,z]=toWorld(b.position),ray=new T.Raycaster();
  const hit=(dx:number,dz:number)=>{ray.set(new T.Vector3(x+dx,100,z+dz),new T.Vector3(0,-1,0));return ray.intersectObject(g,true)[0];};
- for(const dx of [97.5,122.5,147.5]){const h=hit(dx,60)!;assert(h);assert(['626b44','85924f'].includes(((h.object as T.Mesh).material as T.MeshStandardMaterial).color.getHexString()));}
+ for(const dx of [97.5,122.5,147.5]){const h=hit(dx,60)!;assert(h);assert(['665446'].includes(((h.object as T.Mesh).material as T.MeshStandardMaterial).color.getHexString()));}
  for(const dx of [90,120,155]){const h=hit(dx,95)!;assert(h);assert(h.point.y<1.6,'lower square must be level paving, not stairs or a mound');}
  assert.equal(hit(335-x,90),undefined,'stair flights must not occupy the entrance drive');
  disposeTree(g);

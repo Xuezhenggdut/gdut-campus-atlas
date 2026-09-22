@@ -6,6 +6,7 @@ import {detailedDining,detailedTeaching,conference} from './pdfDetails';
 import * as T from 'three';
 import {makeCulture} from './culture';
 import libraryInscription from '../data/library-inscription.json';
+import {makeLibraryRoof} from './libraryRoof';
 import {makeOutdoorCourts} from './outdoorCourts';
 import {researchBuilding} from './researchBuildings';
 import {campusPlaza} from './campusPlazas';
@@ -28,22 +29,23 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
  p.box(w*.90,body-1,d*.90,0,base+body/2,0,'#253c40');
  for(const x of [-w*.46,-w*.23,0,w*.23,w*.46])for(const z of [-d*.46,d*.46])p.box(1.25,base+2,1.25,x,(base+2)/2,z,'#e4e2d9');
  for(const z of [-d*.23,0,d*.23])for(const x of [-w*.46,w*.46])p.box(1.25,base+2,1.25,x,(base+2)/2,z,'#e4e2d9');
+ // Corner shafts continue behind the cladding and remain exposed in the
+ // stacked corner terrace openings, as in the side photograph.
+ for(const x of [-w*.49,w*.49])for(const z of [-d*.49,d*.49])p.box(.8,h,.8,x,h/2,z,'#e4e2d9');
  const accents=['#d6a04c','#719783','#6a9fae','#dfdacf'];
  libraryFaces.forEach((rows,side)=>{const fw=side%2?d:w,dep=(side%2?w:d)/2,cw=fw/12,angle=side*Math.PI/2,front=side===1;
   const box=(width:number,height:number,depth:number,u:number,y:number,v:number,color:string)=>p.box(width,height,depth,Math.cos(angle)*u+Math.sin(angle)*v,y,-Math.sin(angle)*u+Math.cos(angle)*v,color,angle);
   rows.forEach((row,r)=>{const y=h-(r+.5)*step;
    for(let c=0;c<12;c++)if(row[c]==='1'){
     const u=-fw/2+(c+.5)*cw;
-    // Night photo: a permeable metal screen in front of the reading rooms,
-    // with visible floor edges, mullions and interior light behind the slats.
-    for(let j=0;j<3;j++){
-     const x=u-cw/2+(j+.5)*cw/3,bright=(c*7+r*3+j+side)%7>1;
-     box(cw/3-.15,step-.65,.12,x,y,dep-.38,front?(bright?'#647f8b':'#4b6675'):(bright?'#60777b':'#435d64'));
-     box(cw/3*.68,.10,.14,x,y+step*.28,dep-.20,'#99aaa5');
+    // Daytime reference: a continuous square metal-panel grid, with subtle
+    // reflective variation. Balcony voids are handled separately below.
+    const shades=['#727d7d','#758181','#788383','#727d7d','#6f7c7e','#758181'];
+    box(cw-.08,step-.08,.12,u,y,dep-.15,(c+r)%4?'#60777b':'#435d64');
+    for(let j=0;j<3;j++)for(let k=0;k<3;k++){
+     const x=u-cw/2+(j+.5)*cw/3,yy=y-step/2+(k+.5)*step/3;
+     box(cw/3-.075,step/3-.075,.22,x,yy,dep+.12,shades[(c*11+j*3+k+r*5+side)%shades.length]);
     }
-    box(cw-.09,.32,.85,u,y-step/2+.16,dep-.02,'#727d7d');
-    for(let j=0;j<=3;j++)box(.09,step-.1,.24,u-cw/2+j*cw/3,y,dep+.20,'#647172');
-    const slats=front?8:13;for(let j=0;j<slats;j++)box(cw-.12,.065,.22,u,y-step*.44+j*step*.88/(slats-1),dep+.32,front?'#899596':'#727d7d');
    }
    for(let c=0;c<12;){if(row[c]!=='0'){c++;continue;}const start=c;while(c<12&&row[c]==='0')c++;const count=c-start,u=-fw/2+(start+count/2)*cw,len=count*cw;
     box(len-.2,step-.3,.22,u,y,dep-3.5,'#354d50');
@@ -58,8 +60,8 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
    }
   });
   // Light rooftop railings; color appears at terraces and balcony bands.
-  for(let r=0;r<4;r++)box(fw,.10,.16,0,h+1+r*.65,dep,'#dedfd5');
-  for(let i=0;i<=12;i++)box(.13,3.2,.16,-fw/2+i*cw,h+1.6,dep,'#dedfd5');
+  for(let r=0;r<7;r++)box(fw,.065,.12,0,h+.8+r*.32,dep,'#dedfd5');
+  for(let i=0;i<=24;i++)box(.10,2.5,.12,-fw/2+i*fw/24,h+1.75,dep,'#dedfd5');
   // Glazed entrance beneath the raised upper body. Keep the stair platforms.
   const innerDep=side%2?w*.38:d*.36,span=fw*.70;
   for(let j=0;j<12;j++){
@@ -70,24 +72,36 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
   }
  });
  p.box(w,1,d,0,h,0,'#9b9d94');
- // Four rooftop service volumes, perimeter terrace partitions and repeated
- // low roof modules are visible in library-5 / aerial-0, not a flat pool.
- for(const x of [-w*.20,w*.20])for(const z of [-d*.20,d*.20]){p.box(w*.17,3.3,d*.15,x,h+2,z,'#b8b5a8');p.box(w*.18,.5,d*.16,x,h+3.9,z,'#e1dfd2');p.box(w*.17,1.3,.12,x,h+1.1,z+d*.076,'#cda15f');}
- for(let i=-8;i<=8;i++)for(let j=-8;j<=8;j++){if(Math.abs(i)<6&&Math.abs(j)<6)continue;p.box(w/24,.35,d/26,i*w/22,h+.75,j*d/22,'#b6b6a8');}
- for(let i=0;i<12;i++){const x=-w*.44+(i+.5)*w*.88/12;for(const side of [-1,1])p.box(.35,3,d*.10,x,h+1.7,side*d*.41,accents[i%4]);}
- const stairs=(side:number,centers:number[],span:number)=>{const angle=side*Math.PI/2,dep=side%2?w/2:d/2;for(const center of centers){for(let i=0;i<12;i++){const u=center,v=dep+17-i*1.3;p.box(span,.55,1.6,Math.cos(angle)*u+Math.sin(angle)*v,.65+i*.65,-Math.sin(angle)*u+Math.cos(angle)*v,'#d4d2c6',angle);}for(const sign of [-1,1]){const u=center+sign*span*.47;const a:[number,number,number]=[Math.cos(angle)*u+Math.sin(angle)*(dep+17),1.7,-Math.sin(angle)*u+Math.cos(angle)*(dep+17)];const q:[number,number,number]=[Math.cos(angle)*u+Math.sin(angle)*(dep+2),9.5,-Math.sin(angle)*u+Math.cos(angle)*(dep+2)];p.beam(a,q,.17,'#eeeeE4');}}};
- // Gold calligraphic letters sit in front of the central white balcony rail.
- for(const [i,ch] of [...'图书馆'].entries()){
+ makeLibraryRoof(b,p);
+ const stairs=(side:number,centers:number[],span:number)=>{
+  const angle=side*Math.PI/2,dep=side%2?w/2:d/2;
+  const point=(u:number,y:number,v:number):[number,number,number]=>[Math.cos(angle)*u+Math.sin(angle)*v,y,-Math.sin(angle)*u+Math.cos(angle)*v];
+  for(const center of centers){
+   for(let i=0;i<12;i++){
+    const v=dep+17-i*1.3,top=.925+i*.65,pos=point(center,(top+.3)/2,v);
+    p.box(span,top-.3,1.6,...pos,'#d4d2c6',angle);
+   }
+   for(const sign of [-1,1]){
+    const u=center+sign*span*.47;
+    for(const rail of [.25,.65,1.05])p.beam(point(u,1+rail,dep+17),point(u,8.5+rail,dep+2),.10,'#eeeee4');
+    for(let j=0;j<=6;j++)p.box(.1,1.15,.1,...point(u,1.5+7.5*j/6,dep+17-15*j/6),'#eeeee4');
+   }
+  }
+ };
+ // Pale metal traditional calligraphic letters sit in front of the central white balcony rail.
+ for(const [i,ch] of [...'圖書館'].entries()){
   const path=new T.ShapePath();
   for(const [op,...args] of libraryInscription.glyphs[ch as keyof typeof libraryInscription.glyphs]){
    const a=args as number[];
    if(op==='M')path.moveTo(a[0],a[1]);if(op==='L')path.lineTo(a[0],a[1]);
    if(op==='Q')path.quadraticCurveTo(a[0],a[1],a[2],a[3]);if(op==='C')path.bezierCurveTo(a[0],a[1],a[2],a[3],a[4],a[5]);if(op==='Z')path.currentPath?.closePath();
   }
-  const letter=new T.ExtrudeGeometry(path.toShapes(false),{depth:libraryInscription.em*.045,bevelEnabled:false,curveSegments:5});letter.scale(2.5/libraryInscription.em,2.5/libraryInscription.em,2.5/libraryInscription.em);
+  const letter=new T.ExtrudeGeometry(path.toShapes(false),{depth:libraryInscription.em*.045,bevelEnabled:false,curveSegments:5});letter.scale(3.2/libraryInscription.em,3.2/libraryInscription.em,3.2/libraryInscription.em);
   letter.computeBoundingBox();const bounds=letter.boundingBox!;
   const centre=(bounds.min.x+bounds.max.x)/2;
-  p.add(letter,'#cda951',[w/2+1.1,base+step+.55-bounds.min.y,2.7-i*2.7+centre],[0,Math.PI/2,0]);
+  p.add(letter,'#b7b291',[w/2+1.18,base+step+.35-bounds.min.y,3.2-i*3.2+centre],[0,Math.PI/2,0]);
+  for(const dz of [-1.4,1.4])p.box(.07,3.25,.07,w/2+1.05,base+step+1.95,3.2-i*3.2+dz,'#dedfd5');
+  for(const dy of [0,3.2])p.box(.07,.07,2.8,w/2+1.05,base+step+.35+dy,3.2-i*3.2,'#dedfd5');
  }
  // Three broad eastern stair flights and a centre handrail match the front photo.
  for(const center of [-d*.31,0,d*.31]){
@@ -97,7 +111,7 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
    for(let j=0;j<=6;j++){const t=j/6;p.box(.1,1.15,.1,w/2+17-15*t,1.4+7.8*t,-u,'#eeeee4');}
   }
  }
- stairs(1,[-d*.31,0,d*.31],d*.25);stairs(0,[-w*.29,w*.29],w*.26);stairs(3,[0],d*.31);
+ stairs(1,[-d*.31,0,d*.31],d*.25);stairs(0,[-w*.29,w*.29],w*.26);stairs(3,[-d*.30,0,d*.30],d*.23);stairs(2,[-w*.29,w*.29],w*.26);
 }
 function colonnade(p:Parts,w:number,d:number,h:number){for(let x=-w/2;x<=w/2+.1;x+=w/8){p.box(.85,h,.85,x,h/2,d/2+1.2,ivory);p.box(.85,h,.85,x,h/2,-d/2-1.2,ivory);}p.box(w+2,1.2,d+4,0,h,0,ivory);}
 function academic(b:Building,p:Parts){if(/^b-(innovation|truth|virtue)-/.test(b.id)){technologyBuilding(b,p);return;}if(b.id==='b-structure-lab'){structureBuilding(b,p);return;}if(b.kind==='engineering'||/^b-lab-[1-4]$/.test(b.id)){researchBuilding(b,p);return;}const {width:w,depth:d,height:h}=b; const open=b.kind==='teaching';

@@ -7,6 +7,7 @@ import {roadSurfaceConflicts} from '../src/data/roadClearance';
 import {buildings,places,toWorld} from '../src/data/campus';
 import {residentialWaters,westPeripheralWater,inside,roads} from '../src/data/landscape';
 import {Parts} from '../src/scene/geometry';
+import {poolWaterY} from '../src/scene/poolDetails';
 import {makeGym} from '../src/scene/sportsLandmarks';
 import {makeBuilding} from '../src/scene/models';
 import {disposeTree} from '../src/scene/geometry';
@@ -45,7 +46,7 @@ test('pool water remains open to the sky and the concourse reaches the stand rea
  const b=buildings.find(b=>b.id==='b-gym')!,track=buildings.find(b=>b.id==='b-central-track')!;
  const p=new Parts();makeGym(b,p);const g=p.finish();g.updateMatrixWorld(true);
  const top=(x:number,z:number,height=40)=>new T.Raycaster(new T.Vector3(x,height,z),new T.Vector3(0,-1,0)).intersectObject(g,true)[0]?.point.y;
- for(const x of [b.width*.3,b.width*.63])assert(Math.abs(top(x,b.depth*.62)!-3.82)<.01,'no roof or concourse covers pool water');
+ for(const x of [b.width*.3,b.width*.63])assert(Math.abs(top(x+.45,b.depth*.62+.25)!-poolWaterY)<.06,'no roof or concourse covers pool water');
  const rear=toWorld(track.position)[0]-toWorld(b.position)[0]-track.depth/2-2.8-22*.86-1;
  for(let x=b.width*.78+.5;x<rear;x+=1)assert(Math.abs(top(x,0,8)!-3.375)<.01,'raised concourse has no gap before the grandstand');
  disposeTree(g);

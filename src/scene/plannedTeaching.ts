@@ -1,5 +1,7 @@
 import * as T from 'three';
-import type {Building} from '../data/campus';
+import {toWorld,type Building} from '../data/campus';
+import {teachingLinkSpans} from './teachingLinks';
+import {teachingFloorHeight} from '../data/teachingLevels';
 import {teachingCourts} from '../data/teachingPlan';
 import signs from '../data/teaching-signs.json';
 import {cutTeachingMass,teachingEntranceCut} from './teachingEntrance';
@@ -21,7 +23,17 @@ export function plannedTeaching(b:Building,p:Parts){
  const cuts=[...holes,...(entry?[entry]:[])];
  cutTeachingMass(p,cw,cd,[...cuts,...(stair?[stairHole]:[])],h,0,cream);
  const inEntry=(x:number,z:number,margin=0)=>!!entry&&Math.abs(x-entry.x)<entry.width/2+margin&&z>entry.z-entry.depth/2-margin;
- const teachingRail=(parts:Parts,a:[number,number,number],q:[number,number,number],color:string)=>openRail(parts,a,q,color,4,a[1]>=h?.14:.1);
+ const [worldX,worldZ]=toWorld(b.position),links=teachingLinkSpans();
+ const teachingRail=(parts:Parts,a:[number,number,number],q:[number,number,number],color:string)=>{
+  const thickness=a[1]>=h?.14:.1;
+  // Leave walk-through openings where the connecting decks meet the gallery.
+  if(a[2]===q[2]&&a[0]<q[0]&&Math.abs(Math.abs(a[2])-d/2)<.01&&a[1]<=3*teachingFloorHeight+.24){
+   const gaps=links.filter(v=>Math.min(Math.abs(v.z0-worldZ-a[2]),Math.abs(v.z1-worldZ-a[2]))<1).map(v=>[v.x-worldX-1.85,v.x-worldX+1.85]).sort((a,b)=>a[0]-b[0]);
+   let start=a[0];for(const [lo,hi] of gaps){if(hi<=start||lo>=q[0])continue;if(lo>start)openRail(parts,[start,a[1],a[2]],[lo,a[1],a[2]],color,4,thickness);start=Math.max(start,hi);}
+   if(start<q[0])openRail(parts,[start,a[1],a[2]],q,color,4,thickness);return;
+  }
+  openRail(parts,a,q,color,4,thickness);
+ };
  const frontRail=(y:number,z:number)=>{
   if(!entry){teachingRail(p,[-w/2,y,z],[w/2,y,z],rail);return;}
   if(entry.x>0)teachingRail(p,[-w/2,y,z],[entry.x-entry.width/2,y,z],rail);

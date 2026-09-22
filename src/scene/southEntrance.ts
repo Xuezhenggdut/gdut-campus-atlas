@@ -125,20 +125,22 @@ export function makeEntranceOffice(b:Building,p:Parts){
   }
  }
  if(b.id==='b-admin'){
-  // Forecourt: separated flights and planted sloping beds, as in the gate photo.
+  // Forecourt: three stair runs with level landings beside the clipped terraces.
   // Only the east side of the north-south entrance drive is the stair garden.
   // Keep the western office wing over water and the drive free of stair flights.
   const left=80,right=168,back=d*.64,front=76;
   p.box(right-left,.38,front-back,(left+right)/2,.23,(front+back)/2,'#cfcbbd');
   const flights=[{x:85,w:10},{x:110,w:10},{x:135,w:10},{x:160,w:10}];
   for(const flight of flights){
-   for(let i=0;i<18;i++)p.box(flight.w,.35,2.2,flight.x,.55+i*(4.625-.55)/17,front-2-i*2.2,light);
-   for(const side of [-1,1])rail(p,[flight.x+side*flight.w/2,.65,front-1],[flight.x+side*flight.w/2,4.6,front-39]);
+   let z=front-1,y=.55;const rise=(3.8-.55)/18;
+   for(let run=0;run<3;run++){
+    const z0=z,y0=y;
+    for(let i=0;i<6;i++){y+=rise;p.box(flight.w,y-.42,1.81,flight.x,(y+.42)/2,z-.9,light);z-=1.8;}
+    for(const side of [-1,1])rail(p,[flight.x+side*flight.w/2,y0+.08,z0],[flight.x+side*flight.w/2,y+.08,z]);
+    if(run<2){p.box(flight.w,y-.42,3.6,flight.x,(y+.42)/2,z-1.8,light);for(const side of [-1,1])rail(p,[flight.x+side*flight.w/2,y+.08,z],[flight.x+side*flight.w/2,y+.08,z-3.6]);z-=3.6;}
+   }
   }
   makeEntranceGardens(p);
-  for(const [x,bw] of [[97.5,11],[122.5,11],[147.5,11]] as const){
-   for(const side of [-1,1])rail(p,[x+side*bw/2,.8,front-5],[x+side*bw/2,4.5,front-37]);
-  }
   // Broad, level lower square after the last stair. Its southern edge follows
   // the external road setback; no generated lawn or through-road crosses it.
   const lower=new T.Shape();lower.moveTo(80,-76);lower.lineTo(168,-76);lower.lineTo(168,-101);lower.lineTo(80,-121);lower.closePath();
@@ -160,12 +162,12 @@ export function makeEntranceOffice(b:Building,p:Parts){
 }
 
 function inscriptionRock(p:Parts,x:number,z:number){
- const outline=new T.Shape();outline.moveTo(-3.5,0);outline.lineTo(-4.8,3);outline.lineTo(-3.6,7);outline.lineTo(-2.4,11);outline.lineTo(-1.2,15);outline.lineTo(.5,16.8);outline.lineTo(2,14);outline.lineTo(2.5,10.8);outline.lineTo(4.3,5);outline.lineTo(4.6,1.2);outline.lineTo(3.1,0);outline.closePath();
- const rock=new T.ExtrudeGeometry(outline,{depth:2.8,bevelEnabled:true,bevelThickness:.5,bevelSize:.45,bevelSegments:2,steps:1});p.add(rock,'#b69876',[x,.7,z-1.4]);
+ const outline=new T.Shape();outline.moveTo(-3.5,0);outline.quadraticCurveTo(-5,1.4,-4.3,4.5);outline.quadraticCurveTo(-3.4,8,-2.4,11);outline.quadraticCurveTo(-1.7,14.1,-.7,16.8);outline.quadraticCurveTo(.2,15.9,1.3,13.8);outline.quadraticCurveTo(2,11.8,2.5,10.3);outline.quadraticCurveTo(4.5,7,4.9,4.5);outline.quadraticCurveTo(5.3,1.4,3.1,0);outline.closePath();
+ const rock=new T.ExtrudeGeometry(outline,{depth:2.8,bevelEnabled:true,bevelThickness:.5,bevelSize:.45,bevelSegments:3,curveSegments:9,steps:1});p.add(rock,'#b69876',[x,.7,z-1.4]);
  [...'广东工业大学'].forEach((char,index)=>{
   const path=new T.ShapePath();const commands=inscription.glyphs[char as keyof typeof inscription.glyphs];
   for(const [op,...a] of commands){const n=a as number[];if(op==='M')path.moveTo(n[0],n[1]);else if(op==='L')path.lineTo(n[0],n[1]);else if(op==='Q')path.quadraticCurveTo(n[0],n[1],n[2],n[3]);else if(op==='C')path.bezierCurveTo(n[0],n[1],n[2],n[3],n[4],n[5]);else if(op==='Z')path.currentPath?.closePath();}
-  const g=new T.ShapeGeometry(path.toShapes(false));g.scale(1.7/inscription.em,1.7/inscription.em,1);p.add(g,'#774936',[x-.82,13.9-index*1.9,z+1.93]);
+  const g=new T.ShapeGeometry(path.toShapes(false));g.scale(1.7/inscription.em,1.7/inscription.em,1);p.add(g,'#b83e32',[x-.82,13.9-index*1.9,z+1.93]);
  });
 }
 
