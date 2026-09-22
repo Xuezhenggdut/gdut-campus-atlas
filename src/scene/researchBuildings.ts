@@ -1,6 +1,7 @@
 import {Parts} from './geometry';
 import {courtyardMass} from './courtyard';
 import type {Building} from '../data/campus';
+import {mullionedWindow,openRail} from './facadeDetails';
 const white='#e8e8de',glass='#74969a';
 export function researchBuilding(b:Building,p:Parts){
  const {width:w,depth:d,height:h}=b,lab=b.kind==='lab',color=lab?'#8bab99':b.id==='b-science'||['b-engineering-3','b-engineering-4'].includes(b.id)?'#b97662':'#82a6b5';
@@ -11,15 +12,23 @@ export function researchBuilding(b:Building,p:Parts){
  for(const x of [-w*.44,0,w*.44])p.box(w*.06,base-1,d*.44,x,base/2,0,glass);
  for(let f=0;f<=floors;f++){
   const y=base+f*step;courtyardMass(p,w*.95,d*.87,holes,.46,y,white);
-  if(f<floors)for(const side of [-1,1])for(let i=0;i<12;i++)p.box(w*.056,step*.63,.14,-w*.445+(i+.5)*w*.89/12,y+step*.48,side*d*.4,glass);
+  for(const side of [-1,1]){
+   openRail(p,[-w*.475,y+.26,side*d*.435],[w*.475,y+.26,side*d*.435],white);
+   openRail(p,[side*w*.475,y+.26,-d*.435],[side*w*.475,y+.26,d*.435],white);
+   if(f<floors){
+    for(let i=0;i<12;i++)mullionedWindow(p,-w*.445+(i+.5)*w*.89/12,y+step*.5,side*d*.4,w*.056,step*.59,side);
+    // The lake-facing ends have recessed window bays behind the tall frame.
+    for(let i=0;i<3;i++)mullionedWindow(p,side*(w*.455+.08),y+step*.5,-d*.26+i*d*.26,d*.2,step*.59,side,true);
+   }
+  }
  }
  const roof=h+.65;courtyardMass(p,w+1,d+1,holes,.72,h+.16,white);
  for(const hole of holes)for(const side of [-1,1]){
   p.box(hole.width,.55,.23,hole.x,h+1,side*hole.depth/2,white);
   p.box(.23,.55,hole.depth,hole.x+side*hole.width/2,h+1,0,white);
  }
- for(let i=0;i<=12;i++)for(const side of [-1,1])p.box(.52,roof,.52,-w/2+i*w/12,roof/2,side*(d/2+.8),white);
- for(let i=1;i<5;i++)for(const side of [-1,1])p.box(.52,roof,.52,side*(w/2+.5),roof/2,-d/2+i*d/5,white);
+ for(let i=0;i<=12;i++)for(const side of [-1,1])p.box(.76,roof,.76,-w/2+i*w/12,roof/2,side*(d/2+.8),white);
+ for(let i=1;i<5;i++)for(const side of [-1,1])p.box(.85,roof,.85,side*(w/2+.5),roof/2,-d/2+i*d/5,white);
  // Roof level beams tie the full-height column rows together.
  for(const side of [-1,1])p.box(w+2,.5,.6,0,roof,side*(d/2+.8),white);
  for(const side of [-1,1])p.box(.6,.5,d+2,side*(w/2+.5),roof,0,white);

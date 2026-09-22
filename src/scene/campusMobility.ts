@@ -3,6 +3,7 @@ import {roads} from '../data/landscape';
 import {toWorld,type Point} from '../data/campus';
 import {Parts} from './geometry';
 import {roadElevation} from './roadNetwork';
+import {roadWidthAt} from '../data/roadWidths';
 
 export type MobilityRoute={name:string;width:number;points:Point[];distances:number[];length:number};
 export function mobilityRoute(name:string,width:number,points:Point[]):MobilityRoute{
@@ -14,7 +15,9 @@ export function routePose(route:MobilityRoute,distance:number,direction:number,l
  const d=((distance%route.length)+route.length)%route.length;
  let i=1;while(i<route.distances.length-1&&route.distances[i]<d)i++;
  const a=route.points[i-1],b=route.points[i],len=route.distances[i]-route.distances[i-1],t=(d-route.distances[i-1])/len,ux=(b[0]-a[0])/len,uz=(b[1]-a[1])/len;
- const x=a[0]+(b[0]-a[0])*t+uz*lane*direction,z=a[1]+(b[1]-a[1])*t-ux*lane*direction;
+ const cx=a[0]+(b[0]-a[0])*t,cz=a[1]+(b[1]-a[1])*t;
+ const localLane=Math.min(lane,roadWidthAt(route.name,cx,cz,route.width)*.45+.35);
+ const x=cx+uz*localLane*direction,z=cz-ux*localLane*direction;
  const front=roadElevation(route.name,x+ux*direction*2.9),rear=roadElevation(route.name,x-ux*direction*2.9);
  return {x,z,y:roadElevation(route.name,x)+.06,pitch:-Math.atan2(front-rear,5.8),yaw:Math.atan2(ux*direction,uz*direction),scale:Math.min(1,d/5,(route.length-d)/5)};
 }

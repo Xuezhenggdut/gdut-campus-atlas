@@ -2,6 +2,7 @@ import * as T from 'three';
 import {roads} from '../data/landscape';
 import {toWorld} from '../data/campus';
 import {Parts,pathMesh} from './geometry';
+import {roadWidthAt} from '../data/roadWidths';
 
 export const bridgeX=187;
 const ring=roads.find(r=>r.name==='大学城中环西路')!.points.map(toWorld);
@@ -41,7 +42,13 @@ export function makeRoadNetwork(){
   const surfacePoints=road.name==='大学城中环西路'?sampled:points;
   for(const shoulder of [true,false]){
    const mesh=pathMesh(surfacePoints,road.width*.9+(shoulder?3:0),shoulder?'#d9d9c8':road.main?'#7e8c87':'#a0a497');
-   const pos=mesh.geometry.getAttribute('position');for(let j=0;j<pos.count;j++)pos.setY(j,roadElevation(road.name,surfacePoints[Math.floor(j/2)][0])-(shoulder?.1:0));pos.needsUpdate=true;mesh.geometry.computeVertexNormals();group.add(mesh);
+   const pos=mesh.geometry.getAttribute('position');for(let j=0;j<pos.count;j++){
+    const [x,z]=surfacePoints[Math.floor(j/2)],width=roadWidthAt(road.name,x,z,road.width);
+    const border=width<road.width?1.4+1.6*(width-6)/(road.width-6):3;
+    const ratio=(width*.9+(shoulder?border:0))/(road.width*.9+(shoulder?3:0));
+    pos.setX(j,x+(pos.getX(j)-x)*ratio);pos.setZ(j,z+(pos.getZ(j)-z)*ratio);
+    pos.setY(j,roadElevation(road.name,x)-(shoulder?.1:0));
+   }pos.needsUpdate=true;mesh.geometry.computeVertexNormals();group.add(mesh);
   }
   if(road.main)for(let j=2;j<sampled.length;j+=4){
    const a=sampled[j-1],b=sampled[j],x=(a[0]+b[0])/2,z=(a[1]+b[1])/2,rot=-Math.atan2(b[1]-a[1],b[0]-a[0]);

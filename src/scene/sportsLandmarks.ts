@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {Parts} from './geometry';
 import {buildings,toWorld,type Building} from '../data/campus';
+import {openRail} from './facadeDetails';
 
 const white='#ebece4',slab='#c9ccbf',steel='#aebbb5',water='#5e9eae';
 type P3=[number,number,number];
@@ -83,7 +84,7 @@ export function makeGym(b:Building,p:Parts){
  for(const side of [-1,1]){p.box(hw,2.4,.25,cx,14.3,cz+side*hd/2,'#45626a');p.box(.25,2.4,hd,cx+side*hw/2,14.3,cz,'#45626a');}
  for(let i=0;i<=16;i++)for(const side of [-1,1])p.box(.35,3.2,.45,cx-hw/2+i*hw/16,14.3,cz+side*hd/2,white);
  for(let i=0;i<=10;i++)for(const side of [-1,1])p.box(.45,3.2,.35,cx+side*hw/2,14.3,cz-hd/2+i*hd/10,white);
- const rw=hw+7,rd=hd+6,low=16.2,high=21.0;
+ const rw=hw+7,rd=hd+6,low=16.2,high=18.0;
  const vs=[cx-rw/2,low,cz-rd/2,cx-rw/2,low,cz+rd/2,cx+rw/2,low,cz+rd/2,cx+rw/2,low,cz-rd/2,cx-rw*.25,high,cz-rd*.21,cx-rw*.25,high,cz+rd*.21,cx+rw*.25,high,cz+rd*.21,cx+rw*.25,high,cz-rd*.21];
  surface(p,vs,[0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7],'#9aadb0',true);
  for(let i=0;i<=8;i++){const f=i/8,xx=rw/2*(1-f*.5),zz=rd/2*(1-f*.58),yy=low+(high-low)*f+.08;line(p,[[cx-xx,yy,cz-zz],[cx-xx,yy,cz+zz],[cx+xx,yy,cz+zz],[cx+xx,yy,cz-zz],[cx-xx,yy,cz-zz]],.17,white);}
@@ -99,6 +100,32 @@ export function makeGym(b:Building,p:Parts){
   for(const side of [-1,1])for(let lane=1;lane<7;lane++)p.box(.45,.18,.48,x-pw/2+lane*pw/7,3.84,z+side*(pd/2+.4),white);
  }
  p.box(w*.64,.75,d*.66,w*.46,3,d*.62,white);
+ // Aerial: an open white frame encloses the two pool decks. No opaque
+ // roof spans the water; the divider sits in the paved gap between pools.
+ const poolX0=w*.14,poolX1=w*.78,poolZ0=d*.29,poolZ1=d*.95,frameY=7.2;
+ for(const x of [poolX0,w*.465,poolX1]){
+  p.box(.34,.4,poolZ1-poolZ0,x,frameY,(poolZ0+poolZ1)/2,white);
+  for(const z of [poolZ0,poolZ1])p.box(.36,frameY-3.375,.36,x,(frameY+3.375)/2,z,white);
+ }
+ for(const z of [poolZ0,poolZ1]){
+  p.box(poolX1-poolX0,.4,.34,(poolX0+poolX1)/2,frameY,z,white);
+  openRail(p,[poolX0,3.4,z],[poolX1,3.4,z],white);
+ }
+ for(const x of [poolX0,poolX1])openRail(p,[x,3.4,poolZ0],[x,3.4,poolZ1],white);
+ // Join the raised pool/hall concourse to the back of the west stand.
+ // Derive the stand edge from its registered anchor rather than moving
+ // either the running track or the independently traced basketball courts.
+ const track=buildings.find(v=>v.id==='b-central-track')!,origin=toWorld(b.position),target=toWorld(track.position);
+ const dx=target[0]-origin[0],dz=target[1]-origin[1],tx=dx*Math.cos(b.rotation)-dz*Math.sin(b.rotation);
+ const standBack=tx-track.depth/2-2.8-22*.86;
+ const deckX=w*.78,deckEnd=standBack-1,deckZ0=-d*.63,deckZ1=poolZ1;
+ if(deckEnd>deckX){
+  p.box(deckEnd-deckX,.75,deckZ1-deckZ0,(deckX+deckEnd)/2,3,(deckZ0+deckZ1)/2,white);
+  for(const z of [deckZ0,deckZ1]){
+   openRail(p,[deckX,3.4,z],[deckEnd,3.4,z],white);
+   for(let x=deckX;x<deckEnd;x+=6)p.box(.5,2.625,.5,x,1.3125,z,slab);
+  }
+ }
  // Skylight grid and low stairs on the open concourse, visible in the PDF.
  for(let i=0;i<5;i++)for(let j=0;j<4;j++)p.box(1.1,.3,1.1,w*.39-i*3.1,3.75,-d*.36+j*5.5,'#7eabbb');
  for(const z of [-d*.48,-d*.08,d*.18])p.box(7,1.1,2.7,w*.35,4.0,z,slab);

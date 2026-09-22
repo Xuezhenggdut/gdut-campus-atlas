@@ -51,16 +51,21 @@ export function makeCulture(b:Building,p:Parts){
  const ax=-w*.18,aw=w*.46,ad=d*.67,round:Point[]=[];
  round.push([ax-aw/2,-ad/2],[ax+aw/2,-ad/2],[ax+aw/2,ad*.18]);
  for(let i=0;i<=28;i++){const a=i*Math.PI/28;round.push([ax+Math.cos(a)*aw/2,ad*.18+Math.sin(a)*ad*.25]);}
- solid(p,round,h*.18,canopy+.55,'#d0d5d0');solid(p,round,.18,canopy+h*.18+.56,'#b9bfb8');
+ solid(p,round,h*.18,canopy+.55,'#e6e5df');solid(p,round,.18,canopy+h*.18+.56,'#77756b');
  p.box(aw,h*.17,d*.28,ax,canopy+h*.18+.65+h*.085,-d*.29,stone);
- p.box(aw+.2,.2,d*.28+.2,ax,h+.75,-d*.29,roof);
+ p.box(aw+.2,.2,d*.28+.2,ax,canopy+h*.35+.75,-d*.29,'#77756b');
  for(const x of [ax-aw*.43,ax+aw*.43])p.box(.55,.75,.15,x,h-.2,ad*.08,'#50676c');
  // Long sloping glass rooflight beside the auditorium. Slope is toward rear.
- const sx=w*.15,sw=w*.16,z0=-d*.45,z1=d*.42,low=canopy+.6,high=canopy+h*.2;
+ // The new aerial confirms a rooflight on EACH side of the raised hall.
+ for(const [sx,sw,z0,z1,rise] of [[w*.15,w*.16,-d*.45,d*.42,h*.2],[-w*.46,w*.12,-d*.4,d*.12,h*.13]]){
+ const low=canopy+.7,high=low+rise;
  const verts=[sx-sw/2,high,z0,sx+sw/2,high,z0,sx+sw/2,low,z1,sx-sw/2,low,z1,sx-sw/2,low,z0,sx+sw/2,low,z0];
- const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(verts,3));g.setIndex([0,3,2,0,2,1,0,4,3,1,2,5,0,1,5,0,5,4]);g.computeVertexNormals();p.add(g,'#769ba2');
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(verts,3));g.setIndex([0,3,2,0,2,1,0,4,3,1,2,5,0,1,5,0,5,4]);g.computeVertexNormals();p.add(g,'#617d80');
  for(let j=0;j<=16;j++){const t=j/16,z=z0+(z1-z0)*t,y=high+(low-high)*t;p.box(sw+.2,.11,.13,sx,y+.05,z,frame);}
  for(const x of [sx-sw/2,sx,sx+sw/2])p.beam([x,high,z0],[x,low,z1],.13,frame);
+ }
+ // Narrow horizontal transoms in the curved curtain wall, below the fascia.
+ for(const t of [.22,.73])band(p,front,plinth+body*t,.16,.10,frame);
  // Small service roof and side lighting panels visible in the aerial image.
  p.box(w*.09,1.25,d*.10,-w*.015,canopy+1.18,d*.20,stone);
  p.box(w*.092,.15,d*.103,-w*.015,canopy+1.86,d*.20,roof);
@@ -88,5 +93,5 @@ export function makeCulture(b:Building,p:Parts){
   p.add(g,'#f5f5ef',[-w*.03+(i-2.5)*spacing-centerX,1.355-bounds.min.y,frontZ+foreD*.84]);
  });
  // Roof drainage/parapet seams retain detail without photo textures.
- for(let j=0;j<6;j++)p.box(w*.31,.025,.1,w*.33,canopy+.63,-d*.4+j*d*.15,'#b0b8ad');
+ for(let j=0;j<6;j++)p.box(w*.31,.025,.1,w*.33,canopy+.635,-d*.4+j*d*.15,'#b0b8ad');
 }

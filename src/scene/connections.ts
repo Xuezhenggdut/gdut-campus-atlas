@@ -1,11 +1,13 @@
 import * as T from 'three';
 import {Parts} from './geometry';
 import {entrancePodium} from './entrancePodium';
+import {makeValleyPortal} from './teachingEntrance';
 import {buildings,places,toWorld,type Area} from '../data/campus';
 
 // Only links explicitly visible in the official drawing; not pedestrian routing data.
 const rows=[['east',1,2,3],['east',4,5,6,7,8],['east',9,10],['east',12,13,14],['west',1,2,3,4],['west',5,6,7,8,9],['west',10,11,12],['west',13,14]] as const;
 export function makeConnections(area?:Area){const p=new Parts();
+ if(!area||area==='academic')makeValleyPortal(p);
  // East 9/10/11 are single connected dorm buildings. Keep the ground-level
  // passage open while carrying the occupied storeys into the eastern wing.
  if(!area||area==='east')for(const n of [9,10,11]){

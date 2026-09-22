@@ -28,10 +28,10 @@ export function applyAcademicCalibration(buildings:Building[],places:Place[]){
  comprehensive.position=unprojectMap([adminX-admin.width/2+comprehensive.width/2,comprehensiveZ]);
  places.find(p=>p.id==='comprehensive')!.position=comprehensive.position;
  // User satellite reference: inscription is NORTH of the transverse road,
- // on teaching 5's frontage, not in the library's southern forecourt.
+ // aligned with the open entrance between teaching 5 and 3.
  const stone=buildings.find(b=>b.id==='b-innovation-stone')!;
- Object.assign(stone,{position:unprojectMap([255,20]),width:26,depth:5.5,
-  footprint:[[-13,-2.75],[13,-2.75],[13,2.75],[-13,2.75]]});
+ Object.assign(stone,{position:unprojectMap([teachingPlanPoint([248,454])[0],20]),width:20,depth:5.5,height:3.5,
+  footprint:[[-10,-2.75],[10,-2.75],[10,2.75],[-10,2.75]],heightBasis:'实景照片中的低矮宽扁景石及花坛，尺寸为比例拟合。'});
  places.find(p=>p.id==='innovation-stone')!.position=stone.position;
  // Satellite overrides the earlier mistaken parking-plot interpretation:
  // the circular plaza sits between the two avenues, east of the library.

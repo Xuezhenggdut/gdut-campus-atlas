@@ -23,7 +23,7 @@ test('all traced teaching courtyards remain open through the roof and storeys',(
    const hits=new T.Raycaster(new T.Vector3(c.x+c.width*dx,100,c.z),new T.Vector3(0,-1,0)).intersectObject(g,true);
    assert(hits.length&&hits[0].point.y<1,`${b.id} blocked courtyard`);
   }
-  const wall=new T.Raycaster(new T.Vector3(b.width*.49,100,b.depth*.49),new T.Vector3(0,-1,0)).intersectObject(g,true);
+  const wall=new T.Raycaster(new T.Vector3(b.width*(n===5?-.49:.49),100,b.depth*.49),new T.Vector3(0,-1,0)).intersectObject(g,true);
   assert(wall.length&&wall[0].point.y>=b.height,'continuous perimeter must remain');disposeTree(g);
  }
 });

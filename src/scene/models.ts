@@ -76,7 +76,7 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
  for(let i=-8;i<=8;i++)for(let j=-8;j<=8;j++){if(Math.abs(i)<6&&Math.abs(j)<6)continue;p.box(w/24,.35,d/26,i*w/22,h+.75,j*d/22,'#b6b6a8');}
  for(let i=0;i<12;i++){const x=-w*.44+(i+.5)*w*.88/12;for(const side of [-1,1])p.box(.35,3,d*.10,x,h+1.7,side*d*.41,accents[i%4]);}
  const stairs=(side:number,centers:number[],span:number)=>{const angle=side*Math.PI/2,dep=side%2?w/2:d/2;for(const center of centers){for(let i=0;i<12;i++){const u=center,v=dep+17-i*1.3;p.box(span,.55,1.6,Math.cos(angle)*u+Math.sin(angle)*v,.65+i*.65,-Math.sin(angle)*u+Math.cos(angle)*v,'#d4d2c6',angle);}for(const sign of [-1,1]){const u=center+sign*span*.47;const a:[number,number,number]=[Math.cos(angle)*u+Math.sin(angle)*(dep+17),1.7,-Math.sin(angle)*u+Math.cos(angle)*(dep+17)];const q:[number,number,number]=[Math.cos(angle)*u+Math.sin(angle)*(dep+2),9.5,-Math.sin(angle)*u+Math.cos(angle)*(dep+2)];p.beam(a,q,.17,'#eeeeE4');}}};
- // White entrance lettering sits on the central recessed balcony railing.
+ // Gold calligraphic letters sit in front of the central white balcony rail.
  for(const [i,ch] of [...'图书馆'].entries()){
   const path=new T.ShapePath();
   for(const [op,...args] of libraryInscription.glyphs[ch as keyof typeof libraryInscription.glyphs]){
@@ -84,8 +84,10 @@ function library(b:Building,p:Parts){const w=b.width,d=b.depth,h=b.height,base=1
    if(op==='M')path.moveTo(a[0],a[1]);if(op==='L')path.lineTo(a[0],a[1]);
    if(op==='Q')path.quadraticCurveTo(a[0],a[1],a[2],a[3]);if(op==='C')path.bezierCurveTo(a[0],a[1],a[2],a[3],a[4],a[5]);if(op==='Z')path.currentPath?.closePath();
   }
-  const letter=new T.ShapeGeometry(path.toShapes(false));letter.scale(2.1/libraryInscription.em,2.1/libraryInscription.em,1);
-  p.add(letter,'#f0f0e6',[w/2+1.1,base+step+.9,3.5-i*2.5],[0,Math.PI/2,0]);
+  const letter=new T.ExtrudeGeometry(path.toShapes(false),{depth:libraryInscription.em*.045,bevelEnabled:false,curveSegments:5});letter.scale(2.5/libraryInscription.em,2.5/libraryInscription.em,2.5/libraryInscription.em);
+  letter.computeBoundingBox();const bounds=letter.boundingBox!;
+  const centre=(bounds.min.x+bounds.max.x)/2;
+  p.add(letter,'#cda951',[w/2+1.1,base+step+.55-bounds.min.y,2.7-i*2.7+centre],[0,Math.PI/2,0]);
  }
  // Three broad eastern stair flights and a centre handrail match the front photo.
  for(const center of [-d*.31,0,d*.31]){

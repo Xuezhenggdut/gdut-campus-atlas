@@ -107,7 +107,9 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  route('西区五六栋横路',7,[[-420,-151],[-330,-151]]),
  route('西三食堂南侧路',8,[[-420,-110],[-330,-110],[-294,-108],[-258,-122],[-252,-197]]),
  {...route('大学城外环西路',24,[[-530.169,20.742],[-501,42],[-485,86],[-453,114],[-395.859,120.160],[-246.901,164.178],[-171.521,240.009],[-130.845,343.709],[-78.789,470],[140,474],[335,470],[505,430],[798.451,272.911],[867.634,173.718]]),main:true},
- route('创新大道',8,[[394,-110],[394,33],[365,55],[365,238],[335,260],[335,367]]),
+ // Overhead reference: straight runs parallel to the research wings. The
+ // offsets use transverse junctions; no diagonal shortcut through the gardens.
+ route('创新大道',8,[[394,-110],[394,33],[365,33],[365,250.956],[335,250.956],[335,367]]),
  route('南门内外道路连接段',14,[[335,367],[335,470]]),
  route('知行大道',12,[[52,45],[97,33],[335,33],[435,33],[538.446,33],[538.446,18],[559,18]]),
  route('知行大道（南1门段）',12,[[-360,130.8],[-300,110],[-280,130],[-250,140],[-200,140],[-100,140],[-35,140]]),
@@ -117,7 +119,7 @@ const rawRoads:typeof roadGuides=[...(routeData as typeof roadGuides).filter((_,
  route('教学区—东区北联络路',6,[[187,-117],[213,-110],[394,-110]]),
  // The gym/tennis connector meets 环教北路, not the external middle ring.
  route('体育馆—网球场连接路',9,[[-205,-138],[-205,-5],[-220,10],[-220,60],[-205,82],[-205,140]]),
- route('求是路',6,[[410,33],[410,250.956],[405,260],[405,303.596]]),
+ route('求是路',6,[[410,33],[410,250.956],[405,250.956],[405,303.596]]),
  route('明德路',10,[[538.446,18],[538.446,350]]),
  route('博雅路',4,[[653.124,18],[653.124,303.596]]),
  ...[87.026,143.566,196.916,250.956,303.596].map((z,i)=>route(i===1?'研学二路':'科研楼组团横向道路',8,[[z<260?410:405,z],[538.446,z],[653.124,z]])),
@@ -171,9 +173,15 @@ for(const [end,target] of [[0,rawRoads[1]],[-1,rawRoads[0]]] as const){
 rawRoads.find(r=>r.name==='大学城外环西路')!.points[0]=rawRoads[0].points[0];
 const lakeRoad=rawRoads.find(r=>r.name==='环教路')!;
 lakeRoad.points=lakeRoad.points.map(p=>{const q=projectMap(p);return q[1]>200&&q[0]<275?unprojectMap(registerLakePoint(q)):p;});
+// User's satellite crop: a narrow fork west of the football/basketball courts,
+// followed by a curved southbound path, not the old stretched diagonal/T join.
+// Keep the already checked lake road from its southern sports anchor onward.
+const sportsFork:Point=[-30,108];
+lakeRoad.points=[...ground([[52,45],[52,82],[49,90],[40,95],[25,97],[8,101],[-12,106],sportsFork,[-20,117],[-8,127],[4,140],[15,157],[25,182],[31,202]]),...lakeRoad.points.slice(3)];
 // Restore the known internal junction after the lakeside alignment changed.
 // Only this source-confirmed junction is snapped; unrelated dead ends stay put.
 const southOneRoad=rawRoads.find(r=>r.name==='知行大道（南1门段）')!;
+southOneRoad.points=ground([[-360,130.8],[-300,110],[-280,130],[-250,140],[-205,140],[-184,136],[-160,127],[-135,118],[-108,113],[-75,111],sportsFork]);
 const oldEnd=projectMap(southOneRoad.points.at(-1)!);
 let southOneJoin:Point=oldEnd,southOneDistance=Infinity;
 for(let i=1;i<lakeRoad.points.length;i++){

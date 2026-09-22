@@ -46,7 +46,7 @@ test('innovation inscription sits on teaching 5 frontage north of the library cr
  const cross=roads.find(r=>r.name==='知行大道')!,crossZ=toWorld(cross.points[1])[1];
  assert(sz-stone.depth/2>tz+teaching.depth/2,'inscription clears the teaching building');
  assert(sz+stone.depth/2<crossZ-(cross.width*.9+3)/2,'inscription stays north of the road shoulder');
- assert(Math.abs(sx-tx)<teaching.width/2,'inscription remains on teaching 5 frontage');
+ assert(Math.abs(sx-(tx+teaching.width/2))<.01,'inscription aligns with the shared teaching 5/3 entrance');
  assert(lz-library.depth/2>crossZ+cross.width/2,'library stands south of the cross street');
 });
 test('research lattice pairs face each other across the research street',()=>{

@@ -40,6 +40,16 @@ test('sports groups match the satellite adjacency and north junction',()=>{
  assert(junction[1]<teach[1]-b('teaching-6').depth/2,'junction is north of teaching 6');
  for(const name of ['环教北路','挑战路'])assert(roads.find(r=>r.name===name)!.points.map(toWorld).some(p=>Math.hypot(p[0]-junction[0],p[1]-junction[1])<1e-7));
 });
+
+test('pool water remains open to the sky and the concourse reaches the stand rear',()=>{
+ const b=buildings.find(b=>b.id==='b-gym')!,track=buildings.find(b=>b.id==='b-central-track')!;
+ const p=new Parts();makeGym(b,p);const g=p.finish();g.updateMatrixWorld(true);
+ const top=(x:number,z:number,height=40)=>new T.Raycaster(new T.Vector3(x,height,z),new T.Vector3(0,-1,0)).intersectObject(g,true)[0]?.point.y;
+ for(const x of [b.width*.3,b.width*.63])assert(Math.abs(top(x,b.depth*.62)!-3.82)<.01,'no roof or concourse covers pool water');
+ const rear=toWorld(track.position)[0]-toWorld(b.position)[0]-track.depth/2-2.8-22*.86-1;
+ for(let x=b.width*.78+.5;x<rear;x+=1)assert(Math.abs(top(x,0,8)!-3.375)<.01,'raised concourse has no gap before the grandstand');
+ disposeTree(g);
+});
 test('west perimeter water is present; residential waterways do not cover building anchors',()=>{
  const q=projectMap([175,320]),d=registrationDelta('west');
  assert(inside(unprojectMap([q[0]+d[0],q[1]+d[1]]),westPeripheralWater));
