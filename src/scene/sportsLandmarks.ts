@@ -4,6 +4,7 @@ import {makeGymPlatform,gymPlatformY,gymUpperSlab} from './gymPlatform';
 import {buildings,toWorld,type Building} from '../data/campus';
 import {openRail} from './facadeDetails';
 import {poolDeck,makePoolDetails,makeTrackGallery} from './poolDetails';
+import {grandstandLength} from './sportsLayout';
 
 const white='#ebece4',slab='#c9ccbf',steel='#aebbb5';
 type P3=[number,number,number];
@@ -29,7 +30,7 @@ const lettering:Record<string,string[]>={
 function grandstand(b:Building,p:Parts){
  const track=buildings.find(x=>x.id==='b-central-track')!;const a=toWorld(b.position),q=toWorld(track.position),c=Math.cos(b.rotation),s=Math.sin(b.rotation);
  const tx=(q[0]-a[0])*c-(q[1]-a[1])*s,tz=(q[0]-a[0])*s+(q[1]-a[1])*c;
- const len=track.width*1.18,front=tx-track.depth/2-2.8,rows=22,run=.86,rise=.43,back=front-rows*run;
+ const len=grandstandLength(track.width),front=tx-track.depth/2-2.8,rows=22,run=.86,rise=.43,back=front-rows*run;
  // A supported raked terrace, with open concourse beneath and separate stairs.
  for(let k=0;k<=12;k++){const z=tz-len/2+k*len/12;p.box(.65,8.9,.7,back-1,4.45,z,slab);p.beam([front-1,1,z],[back-1,10,z],.65,slab);}
  p.box(3.4,.6,len+3,back-1,10.2,tz,white);

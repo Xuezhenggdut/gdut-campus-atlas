@@ -2,6 +2,7 @@ import * as T from 'three';
 import {Parts} from './geometry';
 import {openRail} from './facadeDetails';
 import {gymUpperSlab} from './gymPlatform';
+import {trackGalleryDepth,trackGalleryOffset} from './sportsLayout';
 import glyphs from '../data/culture-motto.json';
 
 const white='#ebece4',tile='#479aaa',line='#225766';
@@ -103,7 +104,7 @@ export function makePoolDetails(p:Parts,w:number,d:number){
 
 /** South perimeter visible above the basketball courts: two open levels. */
 export function makeTrackGallery(p:Parts,tx:number,tz:number,trackWidth:number,trackDepth:number,w:number){
- const x0=w*.14,x1=tx+trackDepth/2+1,z=tz+trackWidth/2+6,depth=4.4;
+ const x0=w*.14,x1=tx+trackDepth/2+1,z=tz+trackWidth/2+trackGalleryOffset,depth=trackGalleryDepth;
  for(const y of [3.375,7.2]){
   p.box(x1-x0,.35,depth,(x0+x1)/2,y-.175,z,white);
   for(const side of [-1,1])openRail(p,[x0,y,z+side*depth/2],[x1,y,z+side*depth/2],white);
