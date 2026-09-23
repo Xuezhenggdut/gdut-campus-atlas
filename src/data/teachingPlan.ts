@@ -6,10 +6,12 @@ import {cropToPdf,pdfToWorld} from './planningFrame';
 export const teachingPlan:Record<string,{box:[number,number,number,number];courts:[number,number,number,number][]}>={
  'b-teaching-1':{box:[555,362,893,432],courts:[[594,383,663,409],[679,383,744,409],[765,383,826,410]]},
  'b-teaching-2':{box:[555,220,824,290],courts:[[602,245,663,270],[676,245,733,270],[749,238,793,274]]},
- 'b-teaching-3':{box:[248,350,428,454],courts:[[257,383,306,418],[321,383,378,418]]},
- 'b-teaching-4':{box:[248,205,428,313],courts:[[257,237,310,274],[321,237,378,274]]},
- 'b-teaching-5':{box:[93,350,248,454],courts:[[109,382,199,417],[216,385,232,410]]},
- 'b-teaching-6':{box:[93,205,248,313],courts:[[115,237,195,275],[211,246,239,275]]},
+ // User photo supersedes the small central holes with a full-depth shared void.
+ // Only the separate outer courtyards remain in these four buildings.
+ 'b-teaching-3':{box:[248,350,428,454],courts:[[321,383,378,418]]},
+ 'b-teaching-4':{box:[248,205,428,313],courts:[[321,237,378,274]]},
+ 'b-teaching-5':{box:[93,350,248,454],courts:[[109,382,199,417]]},
+ 'b-teaching-6':{box:[93,205,248,313],courts:[[115,237,195,275]]},
 };
 // Teaching and research now share the full-page datum: no local translation.
 export const teachingPlanPoint=(p:Point):Point=>pdfToWorld(cropToPdf('teaching',p));

@@ -8,8 +8,10 @@ import type {CourtOpening} from './courtyard';
 
 export const valleyPortal={center:teachingPlanPoint([248,454]),width:28,depth:27};
 export function teachingEntranceCut(b:Building):CourtOpening|undefined{
- if(!['b-teaching-5','b-teaching-3'].includes(b.id))return;
- return {x:(b.id==='b-teaching-5'?1:-1)*b.width/2,z:b.depth/2-valleyPortal.depth/2+.5,width:valleyPortal.width,depth:valleyPortal.depth+1};
+ if(!['b-teaching-5','b-teaching-6','b-teaching-3','b-teaching-4'].includes(b.id))return;
+ // User's courtyard-to-library photograph supersedes the shallow entrance notch.
+ // Both rows flank one broad, open-air north/south space, not a sealed central wing.
+ return {x:(['b-teaching-5','b-teaching-6'].includes(b.id)?1:-1)*b.width/2,z:0,width:valleyPortal.width,depth:b.depth+2};
 }
 /** Union of rectangular courtyards and open facade notches. Keeping a cell only
  * when it is outside every opening avoids invalid overlapping Shape holes. */

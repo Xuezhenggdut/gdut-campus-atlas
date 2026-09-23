@@ -5,6 +5,7 @@ import {makeConnections} from './connections';
 import {makeRoadNetwork} from './roadNetwork';
 import {makeLakeDucks,swimLakeDucks} from './lakeDucks';
 import {lakeBankRings} from '../data/landscape';
+import {teachingEntranceCut} from './teachingEntrance';
 import {makeResidentialPark} from './residentialPark';
 import {makeWoodedHill,woodedHillHeight,makeAdministrationFootbridge} from './woodedHill';
 import {makeAfterglowSky,makeNightSky,type LightMode} from './lighting';
@@ -86,7 +87,13 @@ export class CampusScene {
  if(this.rotateIcon){const a=this.controls.getAzimuthalAngle();this.rotateIcon.style.transform=`rotate(${-a*180/Math.PI}deg)`;}
  }
  private frame=(time=performance.now())=>{if(this.disposed)return;const delta=Math.min(.1,Math.max(0,(time-this.previousFrame)/1000));this.previousFrame=time;this.raf=requestAnimationFrame(this.frame);if(this.cameraTween){const t=Math.min(1,(time-this.cameraTween.start)/this.cameraTween.duration),s=1-Math.pow(1-t,3);this.camera.position.lerpVectors(this.cameraTween.from,this.cameraTween.to,s);this.controls.target.lerpVectors(this.cameraTween.targetFrom,this.cameraTween.targetTo,s);if(t===1)this.cameraTween=undefined;}this.controls.target.x=T.MathUtils.clamp(this.controls.target.x,-850,850);this.controls.target.z=T.MathUtils.clamp(this.controls.target.z,-850,850);if(!this.photoReference)this.controls.target.y=0;if(this.tourOrbitAt&&time>=this.tourOrbitAt){this.tourOrbitAt=0;this.controls.autoRotate=!this.reduced;this.controls.autoRotateSpeed=1.1;}this.controls.update(delta);this.camera.position.y=Math.max(2.5,this.camera.position.y);
- for(const b of buildings){if(b.height<4||places.find(p=>p.id===b.placeIds[0])?.status==='planned')continue;const [x,z]=toWorld(b.position),dx=this.camera.position.x-x,dz=this.camera.position.z-z,c=Math.cos(b.rotation),sn=Math.sin(b.rotation);if(Math.abs(dx*c-dz*sn)<b.width/2+8&&Math.abs(dx*sn+dz*c)<b.depth/2+8)this.camera.position.y=Math.max(this.camera.position.y,b.height+12);}
+ for(const b of buildings){if(b.height<4||places.find(p=>p.id===b.placeIds[0])?.status==='planned')continue;const [x,z]=toWorld(b.position),dx=this.camera.position.x-x,dz=this.camera.position.z-z,c=Math.cos(b.rotation),sn=Math.sin(b.rotation),lx=dx*c-dz*sn,lz=dx*sn+dz*c;
+  const court=b.kind==='teaching'?teachingEntranceCut(b):undefined;
+  // The shared open courtyard is not occupied by the old rectangular body.
+  // Keep its low photo viewpoints instead of lifting the camera above a roof.
+  if(court&&Math.abs(lx-court.x)<court.width/2-1&&Math.abs(lz-court.z)<court.depth/2+7)continue;
+  if(Math.abs(lx)<b.width/2+8&&Math.abs(lz)<b.depth/2+8)this.camera.position.y=Math.max(this.camera.position.y,b.height+12);
+ }
 if(!this.reduced&&!document.hidden){this.duckTime+=delta;swimLakeDucks(this.ducks,this.duckTime);this.dirty=true;}
 if(this.mobility.step(delta,!this.reduced&&!document.hidden))this.dirty=true;
 if(this.dirty){this.renderer.render(this.scene,this.camera);this.renderedFrames++;this.dirty=false;}this.layoutLabels(time);this.drawFrames.push(time);if(this.drawFrames.length>120)this.drawFrames.shift();if(!this.degraded&&time-this.started>12000&&this.fps<28){this.applyLowQuality();}};

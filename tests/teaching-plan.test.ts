@@ -18,12 +18,12 @@ test('all traced teaching courtyards remain open through the roof and storeys',(
  for(let n=1;n<=6;n++){
   const b=buildings.find(b=>b.id===`b-teaching-${n}`)!,g=makeBuilding(b);
   g.position.set(0,0,0);g.rotation.set(0,0,0);g.updateMatrixWorld(true);
-  const courts=teachingCourts(b.id);assert(courts.length>=2);
+  const courts=teachingCourts(b.id);assert(courts.length>=(n<=2?2:1));
   for(const c of courts)for(const dx of [-.2,0,.2]){
    const hits=new T.Raycaster(new T.Vector3(c.x+c.width*dx,100,c.z),new T.Vector3(0,-1,0)).intersectObject(g,true);
    assert(hits.length&&hits[0].point.y<1,`${b.id} blocked courtyard`);
   }
-  const wall=new T.Raycaster(new T.Vector3(b.width*(n===5?-.49:.49),100,b.depth*.49),new T.Vector3(0,-1,0)).intersectObject(g,true);
+  const wall=new T.Raycaster(new T.Vector3(b.width*(n>=5?-.49:.49),100,b.depth*.49),new T.Vector3(0,-1,0)).intersectObject(g,true);
   assert(wall.length&&wall[0].point.y>=b.height,'continuous perimeter must remain');disposeTree(g);
  }
 });

@@ -22,13 +22,13 @@ test('culture approach rises through two lower flights, a level plaza and a sepa
 });
 test('three teaching gallery levels meet the common floor datum while leaving roads clear below',()=>{
  const p=new Parts();makeTeachingLinks(p);const g=p.finish();g.updateMatrixWorld(true);
- for(const {x,z0,z1} of teachingLinkSpans()){
+ for(const {x,z0,z1,lowerWidth} of teachingLinkSpans()){
   assert(z1>z0);const z=(z0+z1)/2;
   const hits=new T.Raycaster(new T.Vector3(x,30,z),new T.Vector3(0,-1,0)).intersectObject(g,true);
   const levels=[...new Set(hits.map(h=>Number(h.point.y.toFixed(2))))];
   for(const floor of [6.65,11.9,17.15])assert(levels.some(y=>Math.abs(y-floor)<.01));
   for(const xx of [x-5,x-1.4,x,x+1.4,x+5])assert.equal(down(g,xx,z,5),undefined,'no gallery support in the ground passage');
-  for(const xx of [x-5,x+5])assert(Math.abs(down(g,xx,z,9)!-6.65)<.01,'the lower level is a broad raised pedestrian platform');
+  for(const xx of [x-lowerWidth*.4,x+lowerWidth*.4])assert(Math.abs(down(g,xx,z,9)!-6.65)<.01,'the lower platform meets the courtyard-side gallery without entering the void');
  }
  disposeTree(g);
 });
