@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type {Building} from '../data/campus';
 import {Parts,pathMesh} from './geometry';
 
@@ -49,8 +50,10 @@ export function makeAthleticsTrack(b:Building,p:Parts,group:T.Group){
   p.box(.1,.025,d*.26,side*(fw/2-w*.08),1.025,0,paint);
  }
  // Blue/red landing pad in the end apron, outside the rectangular grass.
- p.box(3.8,.30,2.2,w*.405,1.02,-d*.10,'#b75e5d');
- p.box(3.8,.32,2.2,w*.405,1.33,-d*.10,'#529ac5');
+ p.add(new RoundedBoxGeometry(3.8,.25,2.2,2,.10),'#b75e5d',[w*.405,.955,-d*.10]);
+ // Three soft cushion sections and fabric handles distinguish it from a box.
+ for(let i=-1;i<=1;i++)p.add(new RoundedBoxGeometry(1.25,.24,2.15,2,.10),'#529ac5',[w*.405+i*1.26,1.19,-d*.10]);
+ for(const side of [-1,1])for(const dx of [-1,1])p.box(.32,.07,.04,w*.405+dx,1.04,-d*.10+side*1.11,'#d0dce0');
  const jumpX=-w*.39;
  for(const x of [jumpX-1.25,jumpX+1.25])p.box(.10,.025,d*.32,x,1.035,0,'#e6d8c7');
  for(const z of [-d*.16,d*.16])p.box(2.6,.025,.10,jumpX,1.035,z,'#e6d8c7');

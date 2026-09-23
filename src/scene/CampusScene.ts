@@ -1,4 +1,5 @@
 import {CampusMobility} from './campusMobility';
+import {PelicanCyclist} from './pelicanCyclist';
 import {applyNightEmission,makeNightLighting} from './nightLighting';
 import {excludesPodiumTree} from './entrancePodium';
 import {makeConnections} from './connections';
@@ -33,7 +34,7 @@ export class CampusScene {
  this.resizeObs=new ResizeObserver(()=>this.resize());this.resizeObs.observe(host);this.resize();this.frame();this.readyAt=performance.now();callbacks.ready();this.loadDetails();
  }
  private v3(p:Point):[number,number,number]{return [p[0],0,p[1]];}
- private ducks=makeLakeDucks();private duckTime=0;
+ private ducks=makeLakeDucks();private duckTime=0;private pelican=new PelicanCyclist();
  private tourOrbitAt=0;
  stopTour(){this.tourOrbitAt=0;this.controls.autoRotate=false;}
  tourLandmark(id:string){this.focus(id);this.landmarkView('tour');this.tourOrbitAt=performance.now()+1150;}
@@ -54,7 +55,7 @@ export class CampusScene {
  this.terrain.add(flatPolygon(lakeIsland.map(toWorld),'#b9c6a7',.25));
  this.terrain.add(flatPolygon(libraryWestForecourt.map(toWorld),'#ded8c7',.56));
  this.terrain.add(makeRoadNetwork());
- this.root.add(this.ducks);
+ this.root.add(this.ducks,this.pelican.group);
  promenades.forEach(p=>this.terrain.add(pathMesh(p.map(toWorld),3.4,'#e3dbc5',.5)));
  // Shared footprints keep library paving and vegetation clear of the avenues.
  this.terrain.add(flatPolygon(libraryEastForecourt.map(toWorld),'#ded8c7',.53));
@@ -96,6 +97,7 @@ export class CampusScene {
  }
 if(!this.reduced&&!document.hidden){this.duckTime+=delta;swimLakeDucks(this.ducks,this.duckTime);this.dirty=true;}
 if(this.mobility.step(delta,!this.reduced&&!document.hidden))this.dirty=true;
+if(this.pelican.step(delta,!this.reduced&&!document.hidden))this.dirty=true;
 if(this.dirty){this.renderer.render(this.scene,this.camera);this.renderedFrames++;this.dirty=false;}this.layoutLabels(time);this.drawFrames.push(time);if(this.drawFrames.length>120)this.drawFrames.shift();if(!this.degraded&&time-this.started>12000&&this.fps<28){this.applyLowQuality();}};
  private applyLowQuality(){
   this.degraded=true;this.renderer.setPixelRatio(Math.min(devicePixelRatio,.85));this.renderer.shadowMap.enabled=false;
