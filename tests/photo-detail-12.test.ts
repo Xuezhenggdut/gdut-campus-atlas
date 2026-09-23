@@ -5,7 +5,7 @@ import {buildings} from '../src/data/campus';
 import {makeBuilding} from '../src/scene/models';
 import {Parts,disposeTree} from '../src/scene/geometry';
 import {doglegStair} from '../src/scene/facadeDetails';
-import {entranceFlags} from '../src/scene/southEntrance';
+import {entranceFlags,entranceAxisX} from '../src/scene/southEntrance';
 
 test('dogleg flights climb continuously to the next landing and reverse direction',()=>{
  const p=new Parts();doglegStair(p,0,0,6,7,0,4,1,'#fff','#777');const g=p.finish();g.updateMatrixWorld(true);
@@ -28,6 +28,10 @@ test('office roof openings and dorm atrium remain genuinely open above ground',(
 
 test('national flag has its own taller pole on the upper forecourt landing',()=>{
  const national=entranceFlags.filter(f=>f.national);assert.equal(national.length,1);
+ const colors=entranceFlags.filter(f=>!f.national);
+ assert.equal(national[0].x,entranceAxisX);
+ assert.equal(national[0].x,(Math.min(...colors.map(f=>f.x))+Math.max(...colors.map(f=>f.x)))/2);
+ assert(national[0].z>Math.max(...colors.map(f=>f.z)),'national flag stands ahead of the two colored rows');
  assert.equal(national[0].y+1,4.8);assert.equal(national[0].color,'#cf3337');
  assert(national[0].h>Math.max(...entranceFlags.filter(f=>!f.national).map(f=>f.h)));
 });

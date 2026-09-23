@@ -37,3 +37,14 @@ test('shared teaching courtyard stays broad and open through both rows toward th
  }
  disposeTree(g);
 });
+
+test('teaching 3 4 5 6 share the same building and entrance-frame height',()=>{
+ const group=[3,4,5,6].map(n=>buildings.find(b=>b.id===`b-teaching-${n}`)!);
+ assert.equal(new Set(group.map(b=>b.height)).size,1);
+ assert.equal(new Set(group.map(b=>b.floors)).size,1);
+ const p=new Parts();makeValleyPortal(p);const g=p.finish();g.updateMatrixWorld(true);
+ const [x,z]=valleyPortal.center;
+ const top=new T.Raycaster(new T.Vector3(x,50,z),new T.Vector3(0,-1,0)).intersectObject(g,true)[0];
+ assert(top&&top.point.y>group[0].height+1&&top.point.y<group[0].height+3,'entrance top follows the equal teaching roofline');
+ disposeTree(g);
+});

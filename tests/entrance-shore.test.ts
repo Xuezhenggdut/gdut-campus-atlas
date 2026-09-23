@@ -53,7 +53,7 @@ test('lawn-facing tall colonnade continues east, with auditorium and inscription
  assert(mx>ax+147.5&&mz+meeting.depth/2<az+35,'auditorium is east of the right lawn and behind the planted slopes');
  assert(mz+meeting.depth/2<az+76,'auditorium stays behind the lower square');
  const g=makeBuilding(admin);g.updateMatrixWorld(true);
- for(const wx of [364,392,413]){
+ for(const wx of [350,ax+140,413]){
   const ray=new T.Raycaster(new T.Vector3(wx,10,az+85),new T.Vector3(0,0,-1));
   const column=ray.intersectObject(g,true).find(h=>h.point.z<az+34&&h.point.z>az+25);
   assert(column,`missing tall column behind lawn near ${wx}`);

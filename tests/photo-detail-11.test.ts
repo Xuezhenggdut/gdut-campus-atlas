@@ -42,7 +42,7 @@ test('wooded rise stays west of the canal and the footbridge reaches the office 
 });
 
 test('entrance flag rows run along the upper forecourt, without poles in the eastern grove',()=>{
- const rows=[...new Set(entranceFlags.map(f=>f.x))];assert.equal(rows.length,2);
+ const rows=[...new Set(entranceFlags.filter(f=>!f.national).map(f=>f.x))];assert.equal(rows.length,2);
  for(const x of rows){const row=entranceFlags.filter(f=>f.x===x);assert(row.length>1);assert(Math.max(...row.map(f=>f.z))-Math.min(...row.map(f=>f.z))>15);}
  assert(entranceFlags.every(f=>f.y+1===4.8&&f.x>80&&f.x<168&&f.z<37));
 });

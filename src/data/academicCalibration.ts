@@ -49,9 +49,9 @@ export function applyAcademicCalibration(buildings:Building[],places:Place[]){
   for(const p of places.filter(p=>b.placeIds.includes(p.id))){p.position=b.position;
    if(!p.sourceIds.includes('planning-20241008'))p.sourceIds.push('planning-20241008');}
  }
- // Separate storey annotations on the two rows, rather than six equal-height
- // copies. Retain estimated heights until elevation evidence is available.
- for(const [id,floors] of [['teaching-1',5],['teaching-2',5],['teaching-3',4],['teaching-4',3],['teaching-5',4],['teaching-6',3]] as const){
+ // User correction: teaching 3/4/5/6 share one height. Their three-storey
+ // courtyard elevation supersedes the earlier unequal row interpretation.
+ for(const [id,floors] of [['teaching-1',5],['teaching-2',5],['teaching-3',3],['teaching-4',3],['teaching-5',3],['teaching-6',3]] as const){
   const b=buildings.find(b=>b.id==='b-'+id)!;b.floors=floors;b.height=floors*teachingFloorHeight;
   const [x0,y0,x1,y1]=teachingPlan[b.id].box,width=(x1-x0)*planningScale/5,depth=(y1-y0)*planningScale/5;
   Object.assign(b,{position:unprojectMap(teachingPlanPoint([(x0+x1)/2,(y0+y1)/2])),width,depth,

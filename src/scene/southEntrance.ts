@@ -6,6 +6,7 @@ import inscription from '../data/gate-inscription.json';
 import {mullionedWindow} from './facadeDetails';
 import {makeEntranceGardens} from './entranceGardens';
 import {officeFlowerBox,officeSign,officePlatformStair} from './officeDetails';
+import {nearPodiumWell} from './entrancePodium';
 
 const stone='#c4bbaa',light='#ebe7dc',glass='#52696a',metal='#bac4be';
 // Sparse plaza planting read from the user's overhead crop; these are local
@@ -15,11 +16,15 @@ export const entrancePlazaTrees=[{x:88,z:86,r:2.9},{x:85,z:99,r:2.5},{x:92,z:112
 // Aerial reference: two north-south rows on the upper forecourt, behind the
 // stair lawns, flanking the light well. No poles continue into the eastern trees.
 // makeBuilding adds 1 unit in Y, so 3.8 here meets the world-space 4.8 deck.
-export const entranceFlags=[94,145].flatMap((x,row)=>
- Array.from({length:8},(_,i)=>({x,z:14+i*2.8,h:row===1&&i===3?27:19+(i%4)*1.8,y:3.8,national:row===1&&i===3,color:row===1&&i===3?'#cf3337':['#349ec1','#408963','#cf3337','#dfb43b'][(i+row)%4]})));
+export const entranceAxisX=110;
+export const entranceFlags=[
+ ...[94,126].flatMap((x,row)=>Array.from({length:8},(_,i)=>({x,z:14+i*2.8,h:19+(i%4)*1.0,y:3.8,national:false,color:['#349ec1','#408963','#cf3337','#dfb43b'][(i+row)%4]}))),
+ {x:entranceAxisX,z:35,h:27,y:3.8,national:true,color:'#cf3337'},
+];
 function makeEntranceFlags(p:Parts){
  for(const [i,f] of entranceFlags.entries()){
-  p.cylinder(.95,1.5,f.x,f.y+.75,f.z,'#949b96',.48,4);
+  if(f.national){p.box(4.8,.15,4.8,f.x,f.y+.075,f.z,light);p.box(3.8,.15,3.8,f.x,f.y+.225,f.z,light);}
+  p.cylinder(f.national?.48:.95,f.national?.65:1.5,f.x,f.y+(f.national?.625:.75),f.z,'#949b96',f.national?.25:.48,4);
   p.cylinder(.11,f.h,f.x,f.y+f.h/2,f.z,'#b9c5c4',.075,8);
   p.cylinder(.18,.25,f.x,f.y+f.h+.12,f.z,'#d7d8c6',.18,8);
   const flag=new T.PlaneGeometry(3.4,2.0,8,3),pos=flag.getAttribute('position');
@@ -58,17 +63,26 @@ type P3=[number,number,number];
 function localPosition(origin:Building,target:Building):[number,number]{const a=toWorld(origin.position),b=toWorld(target.position),x=b[0]-a[0],z=b[1]-a[1],c=Math.cos(origin.rotation),s=Math.sin(origin.rotation);return [x*c-z*s,x*s+z*c];}
 function rail(p:Parts,a:P3,b:P3,height=1.1){for(let i=0;i<4;i++)p.beam([a[0],a[1]+.22+i*.26,a[2]],[b[0],b[1]+.22+i*.26,b[2]],.09,light);const n=Math.ceil(Math.hypot(b[0]-a[0],b[2]-a[2])/3.3);for(let i=0;i<=n;i++){const t=i/n;p.box(.1,height,.1,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+height/2,a[2]+(b[2]-a[2])*t,light);}}
 function column(p:Parts,x:number,z:number,h:number){p.cylinder(.74,h,x,h/2,z,stone,.74,12);for(let j=1;j<18;j++)p.cylinder(.75,.045,x,j*h/18,z,'#b2ad9f',.75,12);p.box(1.5,.8,1.5,x,h-.1,z,metal);}
-function lattice(p:Parts,x0:number,x1:number,z0:number,z1:number,y:number,opening?:{width:number;depth:number}){
+function lattice(p:Parts,x0:number,x1:number,z0:number,z1:number,y:number,opening?:{width:number;depth:number},portal?:{x:number;z:number;width:number;depth:number}){
+ const holes=[...(opening?[{...opening,x:0,z:0}]:[]),...(portal?[portal]:[])];
+ const spans=(lo:number,hi:number,cuts:number[][])=>{
+  let segments=[[lo,hi]];
+  for(const [a,b] of cuts)segments=segments.flatMap(([l,r])=>b<=l||a>=r?[[l,r]]:[[l,Math.max(l,a)],[Math.min(r,b),r]].filter(([u,v])=>v-u>.01));
+  return segments;
+ };
  for(const z of [z0,z1]){p.box(x1-x0,.78,.6,(x0+x1)/2,y,z,metal);rail(p,[x0,y+.4,z],[x1,y+.4,z],1);}
  for(let x=x0;x<=x1+.05;x+=3.25){
-  const spans=opening&&Math.abs(x)<opening.width/2?[[z0,-opening.depth/2],[opening.depth/2,z1]]:[[z0,z1]];
-  for(const [a,b] of spans)p.box(.20,.42,b-a,x,y-.1,(a+b)/2,'#8c9e9c');
+  const cuts=holes.filter(h=>Math.abs(x-h.x)<h.width/2+.1).map(h=>[h.z-h.depth/2,h.z+h.depth/2]);
+  for(const [a,b] of spans(z0,z1,cuts))p.box(.20,.42,b-a,x,y-.1,(a+b)/2,'#b9c8c3');
  }
  for(let z=z0+3.2;z<z1;z+=3.2){
-  const spans=opening&&Math.abs(z)<opening.depth/2?[[x0,-opening.width/2],[opening.width/2,x1]]:[[x0,x1]];
-  for(const [a,b] of spans)p.box(b-a,.18,.17,(a+b)/2,y+.06,z,'#cbd5ce');
+  const cuts=holes.filter(h=>Math.abs(z-h.z)<h.depth/2+.1).map(h=>[h.x-h.width/2,h.x+h.width/2]);
+  for(const [a,b] of spans(x0,x1,cuts))p.box(b-a,.18,.17,(a+b)/2,y+.06,z,'#cbd5ce');
  }
- if(opening)for(const s of [-1,1]){p.box(opening.width,.42,.3,0,y,s*opening.depth/2,metal);p.box(.3,.42,opening.depth,s*opening.width/2,y,0,metal);}
+ for(const h of holes)for(const side of [-1,1]){
+  p.box(h.width,.55,.40,h.x,y,h.z+side*h.depth/2,metal);
+  p.box(.40,.55,h.depth,h.x+side*h.width/2,y,h.z,metal);
+ }
 }
 
 export function makeEntranceOffice(b:Building,p:Parts){
@@ -76,12 +90,15 @@ export function makeEntranceOffice(b:Building,p:Parts){
  const floors=b.id==='b-comprehensive'?7:5,step=(h-base)/floors;
  const holes=[{x:0,z:0,width:coreW*.55,depth:coreD*.38}];
  waterfrontOfficeDeck(p,w,d,base);
- courtyardMass(p,coreW,coreD,holes,h-base,base,'#d1cbb7');
+ // Upper occupied wings step back inside the exposed colonnade.
+ // One monolithic extrusion previously filled these open terraces.
  for(let f=0;f<floors;f++){
   const y=base+f*step,windowY=y+step*.52,windowH=Math.min(2.4,step*.65);
+  const setback=f>=floors-2?(f===floors-1?.72:.86):1,roomW=coreW*setback,roomD=coreD*(f===floors-1?.84:1);
+  courtyardMass(p,roomW,roomD,holes,step-.1,y,'#d1cbb7');
   for(const side of [-1,1]){
-   for(let j=0;j<10;j++)mullionedWindow(p,-coreW/2+(j+.5)*coreW/10,windowY,side*(coreD/2+.08),coreW/10*.7,windowH,side,false,glass);
-   for(let j=0;j<3;j++)mullionedWindow(p,side*(coreW/2+.08),windowY,-coreD/2+(j+.5)*coreD/3,coreD/3*.65,windowH,side,true,glass);
+   for(let j=0;j<10;j++)mullionedWindow(p,-roomW/2+(j+.5)*roomW/10,windowY,side*(roomD/2+.08),roomW/10*.7,windowH,side,false,glass);
+   for(let j=0;j<3;j++)mullionedWindow(p,side*(roomW/2+.08),windowY,-roomD/2+(j+.5)*roomD/3,roomD/3*.65,windowH,side,true,glass);
   }
   courtyardMass(p,coreW+5,coreD+5,holes,.45,y,light);
   for(const side of [-1,1]){
@@ -133,9 +150,12 @@ export function makeEntranceOffice(b:Building,p:Parts){
  // centre under the tall lattice. Its eastern half projects beyond the edge.
  const extension=(b.id==='b-admin'?meetingX:engineeringWest)-worldX;
  const frontRow=b.id==='b-admin'?Math.max(d*.62,meetingZ-officeZ+meeting.depth/2+2.5):d*.62;
- lattice(p,-w/2-1,extension,-d*.63,frontRow+.3,h+5.8,holes[0]);
+ const admin=buildings.find(v=>v.id==='b-admin')!,axis=toWorld(admin.position)[0]+entranceAxisX-worldX;
+ const portal={x:axis,z:(frontRow+.3-d*.63)/2,width:60,depth:frontRow+.3+d*.63-9};
+ lattice(p,-w/2-1,extension,-d*.63,frontRow+.3,h+5.8,holes[0],portal);
  const supports=(b.id==='b-admin'?[w/2+14,extension-13,extension]:[310-worldX,352-worldX,374-worldX,engineeringWest-worldX]).filter(x=>Math.abs(toWorld(b.position)[0]+x-335)>10);
  for(const x of supports)for(const z of [-d*.62,frontRow]){
+  if(nearPodiumWell(worldX+x,officeZ+z,1))continue;
   column(p,x,z,h+5.1);
   p.beam([x,h+4.3,z],[x-5,h+5.5,z],.27,metal);
  }
@@ -144,7 +164,7 @@ export function makeEntranceOffice(b:Building,p:Parts){
   // neighbouring engineering block behind it. Tall columns remain on land.
   const front=Math.max(29,frontRow+1),west=350-worldX,east=extension;
   lattice(p,west,east,frontRow+.3,front,h+5.8);
-  for(const x of [350,364,378,392,406,413,meetingX]){
+  for(const x of [worldX+entranceAxisX-30,350,worldX+entranceAxisX+30,413,meetingX]){
    column(p,x-worldX,front-.4,h+5.1);
    p.beam([x-worldX,h+4.3,front-.4],[x-worldX-4,h+5.5,front-.4],.27,metal);
   }
