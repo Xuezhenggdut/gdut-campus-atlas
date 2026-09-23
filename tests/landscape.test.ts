@@ -15,9 +15,9 @@ test('library stairs and platform remain dry, and administration ground remains 
  for(let x=215;x<=320;x+=2)for(let z=45;z<=120;z+=2)assert.equal(wet(x,z),false,`library platform ${x},${z}`);
  for(const id of ['b-admin','b-comprehensive']){const [x,z]=toWorld(buildings.find(b=>b.id===id)!.position);assert.equal(wet(x,z),false,id);}
 });
-test('south canal remains connected beyond the outer ring',()=>{
- for(let z=350;z<=490;z+=2)assert(wet(302,z));
- for(let t=0;t<=1;t+=.02)assert(wet(307+26*t,490+ 75*t));
+test('south canal reaches the outer ring without an exterior water stub',()=>{
+ for(let z=350;z<470;z+=2)assert(wet(302,z));
+ for(let z=484;z<=580;z+=4)for(let x=280;x<=350;x+=4)assert.equal(wet(x,z),false);
 });
 test('inner lake road is one continuous line through the south entrance and separate from outer ring',()=>{
  const ring=roads.find(r=>r.name==='环教路')!,outer=roads.find(r=>r.name==='大学城外环西路')!;

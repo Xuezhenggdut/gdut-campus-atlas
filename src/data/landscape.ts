@@ -21,8 +21,9 @@ for(const i of [1,2])landPolygons[i]=ground(clipToEastBoundary(landPolygons[i].m
 // Extend the eastern ground envelope with the calibrated research plots.
 landPolygons.push(ground([[590,0],[705,0],[875,173],[810,285],[630,400],[570,345]]));
 // Banks follow the outside of the library's full stair/forecourt envelope.
+// The south channel stops beneath the outer-ring road; no exterior water stub.
 // Ground coordinates remain schematic; these are not roof or label positions.
-export const lakeSourcePolygons:Point[][]=[[[21,319],[27,297],[95,293],[111,260],[111,190],[137,172],[186,197],[180,236],[203,282],[180,324],[188,353],[182,371],[162,369],[140,358],[108,354],[78,365],[44,375],[20,366],[12,347]],[[175,267],[196,229],[195,202],[140,181],[113,164],[100,145],[95,125],[97,110],[107,108],[114,114],[116,135],[129,164],[164,186],[222,205],[310,240],[310,256],[218,256],[218,300],[241,300],[241,302],[241,345],[310,345],[310,350],[314,410],[320,490],[345,565],[321,573],[294,494],[286,411],[276,367],[278,362],[246,383],[216,380],[197,374],[190,350],[214,305]]];
+export const lakeSourcePolygons:Point[][]=[[[21,319],[27,297],[95,293],[111,260],[111,190],[137,172],[186,197],[180,236],[203,282],[180,324],[188,353],[182,371],[162,369],[140,358],[108,354],[78,365],[44,375],[20,366],[12,347]],[[175,267],[196,229],[195,202],[140,181],[113,164],[100,145],[95,125],[97,110],[107,108],[114,114],[116,135],[129,164],[164,186],[222,205],[310,240],[310,256],[218,256],[218,300],[241,300],[241,302],[241,345],[310,345],[310,350],[314,410],[318.5,470],[291.686747,470],[286,411],[276,367],[278,362],[246,383],[216,380],[197,374],[190,350],[214,305]]];
 for(let i=0;i<lakeSourcePolygons.length;i++)lakeSourcePolygons[i]=lakeSourcePolygons[i].map(registerLakePoint);
 // Preserve the water occupancy polygons (including the enclosed dry pocket).
 // Draw bank strips only on the union boundary, never along submerged seams.
