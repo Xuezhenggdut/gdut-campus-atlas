@@ -5,6 +5,7 @@ import {buildings,toWorld,type Building} from '../data/campus';
 import {openRail} from './facadeDetails';
 import {poolDeck,makePoolDetails,makeTrackGallery} from './poolDetails';
 import {grandstandLength} from './sportsLayout';
+import {makeGymWestCourts} from './gymWestCourts';
 
 const white='#ebece4',slab='#c9ccbf',steel='#aebbb5';
 type P3=[number,number,number];
@@ -16,10 +17,6 @@ function surface(p:Parts,vertices:number[],indices:number[],color:string,twoSide
 }
 function line(p:Parts,points:P3[],width:number,color=white){for(let i=1;i<points.length;i++)p.beam(points[i-1],points[i],width,color);}
 function ellipse(rx:number,rz:number,y:number,start=0,end=Math.PI*2,n=96):P3[]{return Array.from({length:n+1},(_,i)=>{const a=start+(end-start)*i/n;return [rx*Math.cos(a),y,rz*Math.sin(a)];});}
-function deckCourt(p:Parts,x:number,z:number,w:number,d:number,color:string,y:number){
- p.box(w,.18,d,x,y,z,color);for(const sign of [-1,1]){p.box(w*.88,.07,.13,x,y+.12,z+sign*d*.42,white);p.box(.13,.07,d*.84,x+sign*w*.44,y+.12,z,white);}p.box(.12,.07,d*.84,x,y+.12,z,white);
- for(const side of [-1,1]){p.box(.15,.08,d*.45,x+side*w*.28,y+.12,z,white);p.box(w*.16,.08,.12,x+side*w*.36,y+.12,z+d*.23,white);p.box(w*.16,.08,.12,x+side*w*.36,y+.12,z-d*.23,white);}
-}
 const lettering:Record<string,string[]>={
  G:['01110','10001','10000','10111','10001','10001','01110'],
  D:['11110','10001','10001','10001','10001','10001','11110'],
@@ -103,8 +100,7 @@ export function makeGym(b:Building,p:Parts){
  const vs=[cx-rw/2,low,cz-rd/2,cx-rw/2,low,cz+rd/2,cx+rw/2,low,cz+rd/2,cx+rw/2,low,cz-rd/2,cx-rw*.25,high,cz-rd*.21,cx-rw*.25,high,cz+rd*.21,cx+rw*.25,high,cz+rd*.21,cx+rw*.25,high,cz-rd*.21];
  surface(p,vs,[0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7],'#9aadb0',true);
  for(let i=0;i<=8;i++){const f=i/8,xx=rw/2*(1-f*.5),zz=rd/2*(1-f*.58),yy=low+(high-low)*f+.08;line(p,[[cx-xx,yy,cz-zz],[cx-xx,yy,cz+zz],[cx+xx,yy,cz+zz],[cx+xx,yy,cz-zz],[cx-xx,yy,cz-zz]],.17,white);}
- // Separate blue and red open courts at the back/side of the raised deck.
- for(const [z,col] of [[-d*.37,'#68858e'],[-d*.02,'#b96f55']] as const){deckCourt(p,-w*.54,z,w*.20,d*.29,col,3.55);for(const x of [-w*.65,-w*.43])p.box(.16,2.8,.16,x,5,z,steel);}
+ makeGymWestCourts(p,w,d);
  // East concourse links the hall to the west stand; pools occupy its southern side.
  p.box(w*.54,.75,d*.90,w*.54,3,-d*.18,white);
  poolDeck(p,w,d,w*.64,d*.66,w*.46,d*.62);

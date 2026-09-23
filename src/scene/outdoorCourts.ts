@@ -3,7 +3,7 @@ import type {Building} from '../data/campus';
 import {Parts,pathMesh} from './geometry';
 
 const blue='#339dbb',surround='#70a99e',lineColor='#ebece4',pole='#477b70';
-function hoop(p:Parts,x:number,end:number,side:number,y:number){
+export function basketballHoop(p:Parts,x:number,end:number,side:number,y:number){
  const foot=end+side*1.15,board=end-side*.25,ring=end-side*.68;
  p.box(.85,.16,.85,x,y-.01,foot,'#c6c9bc');
  const curve=new T.CatmullRomCurve3([
@@ -61,7 +61,7 @@ export function makeOutdoorCourts(b:Building,p:Parts,g:T.Group){
     for(const edge of [-1,1])p.box(.10,.06,1,x+edge*r,y,end-side*.5,lineColor);
     const freeZ=end-side*cd*.18;
     g.add(pathMesh(Array.from({length:17},(_,k)=>{const a=k*Math.PI/16;return [x+Math.cos(a)*cw*.2,freeZ-side*Math.sin(a)*cw*.2] as [number,number];}),.10,lineColor,y));
-    hoop(p,x,end,side,y);
+    basketballHoop(p,x,end,side,y);
    }
   }else{
    for(const side of [-1,1]){
