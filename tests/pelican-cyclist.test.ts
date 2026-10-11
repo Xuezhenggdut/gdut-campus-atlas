@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import {buildings} from '../src/data/campus';
-import {cyclingLap,cyclingPose,PelicanCyclist} from '../src/scene/pelicanCyclist';
+import {cyclingLap,cyclingPose,pedalingLeg,PelicanCyclist} from '../src/scene/pelicanCyclist';
 import {makeBuilding} from '../src/scene/models';
 import {disposeTree} from '../src/scene/geometry';
 
@@ -25,6 +25,21 @@ test('pelican follows the stadium lane continuously at constant speed without cr
  }
  const a=cyclingPose(b.width,b.depth,0),end=cyclingPose(b.width,b.depth,lap);
  assert.deepEqual(end,a);disposeTree(track);
+});
+
+test('pedaling keeps leg lengths fixed and both webbed feet on opposite pedals',()=>{
+ for(let i=0;i<120;i++){
+  const phase=i*Math.PI/60,bob=.018*Math.sin(phase*2);
+  const left=pedalingLeg(-1,phase+Math.PI,bob),right=pedalingLeg(1,phase,bob);
+  for(const limb of [left,right]){
+   assert(Math.abs(limb.hip.distanceTo(limb.knee)-.86)<1e-9);
+   assert(Math.abs(limb.knee.distanceTo(limb.foot)-.86)<1e-9);
+   assert(Math.abs(Math.hypot(limb.foot.y-.78,limb.foot.z+.15)-.30)<1e-9);
+   assert(limb.knee.z>limb.hip.z,'knees bend forward clear of the saddle');
+  }
+  assert(Math.abs(left.foot.y+right.foot.y-1.56)<1e-9);
+  assert(Math.abs(left.foot.z+right.foot.z+.30)<1e-9);
+ }
 });
 
 test('pelican loops without disappearing and pauses its pose when animation is disabled',()=>{

@@ -7,3 +7,6 @@ export const grandstandSideStairOuter=4.1;
 export function grandstandLength(trackWidth:number){
  return 2*(trackWidth/2+trackGalleryOffset-trackGalleryDepth/2-grandstandEndGap-grandstandSideStairOuter);
 }
+export function poolLightMastPositions(width:number,depth:number):[number,number][]{
+ return [width*.14-6.2,width*.465,width*.78+2].flatMap(x=>[depth*.37,depth*.87].map(z=>[x,z] as [number,number]));
+}

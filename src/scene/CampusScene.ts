@@ -1,5 +1,6 @@
 import {CampusMobility} from './campusMobility';
 import {PelicanCyclist} from './pelicanCyclist';
+import {poolLightMastPositions} from './sportsLayout';
 import {applyNightEmission,makeNightLighting} from './nightLighting';
 import {excludesPodiumTree} from './entrancePodium';
 import {makeConnections} from './connections';
@@ -80,6 +81,12 @@ export class CampusScene {
  const sightlines=photoViews.filter(v=>v.localCamera[1]<20).flatMap(v=>{const b=built.find(b=>b.placeIds.includes(v.placeId));if(!b)return [];const [cx,,cz]=v.localCamera,c=Math.cos(b.rotation),s=Math.sin(b.rotation);return [{x:b.world[0],z:b.world[1],dx:cx*c+cz*s,dz:-cx*s+cz*c,width:b.width}];});
  for(let i=points.length-1;i>=0;i--){const p=points[i];if(sightlines.some(v=>{const t=Math.max(0,Math.min(1,((p.x-v.x)*v.dx+(p.z-v.z)*v.dz)/(v.dx*v.dx+v.dz*v.dz)));return Math.hypot(p.x-v.x-v.dx*t,p.z-v.z-v.dz*t)<12+v.width*.5*(1-t);})){points.splice(i,1);}}
  for(let n=0,added=0;n<1400&&added<110;n++){const x=-10+random()*190,z=195+random()*175;if(woodedHillHeight(x,z)<.9||points.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;points.push({x,z,s:4+random()*2.5,c:random()});added++;}
+ // Test the crown radius against the actual pool light locations, not only
+ // the trunk against the building footprint. Filter after generation so the
+ // remaining deterministic tree positions do not change.
+ const gym=built.find(b=>b.id==='b-gym')!,gc=Math.cos(gym.rotation),gs=Math.sin(gym.rotation);
+ const poolLights=poolLightMastPositions(gym.width,gym.depth).map(([x,z])=>[gym.world[0]+x*gc+z*gs,gym.world[1]-x*gs+z*gc]);
+ for(let i=points.length-1;i>=0;i--)if(poolLights.some(([x,z])=>Math.hypot(points[i].x-x,points[i].z-z)<points[i].s+.7))points.splice(i,1);
  const tree=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:'#ffffff',roughness:1}),points.length);tree.name='campus-trees';const trunk=new T.InstancedMesh(new T.CylinderGeometry(.45,.65,5,5),new T.MeshStandardMaterial({color:'#8f9273'}),points.length);const mat=new T.Matrix4(),q=new T.Quaternion(),colors=['#819969','#8eab78','#718c63','#9eaf7d','#64876c'];points.forEach((p,i)=>{mat.compose(new T.Vector3(p.x,woodedHillHeight(p.x,p.z)+5+p.s*.45,p.z),q,new T.Vector3(p.s,p.s*1.05,p.s));tree.setMatrixAt(i,mat);tree.setColorAt(i,new T.Color(colors[Math.floor(p.c*colors.length)]));mat.compose(new T.Vector3(p.x,woodedHillHeight(p.x,p.z)+2.8,p.z),q,new T.Vector3(1,1,1));trunk.setMatrixAt(i,mat);});tree.castShadow=true;tree.receiveShadow=true;this.vegetation.add(tree,trunk);
  }
  private createLabels(){for(const p of places){const el=document.createElement('button');el.className='map-label'+(p.landmark?' landmark':'')+(p.status==='planned'?' planned':'');el.textContent=p.name+(p.status==='planned'?' · 规划':'');el.type='button';el.setAttribute('aria-label','查看'+p.name);el.onclick=()=>this.callbacks.select(p.id);this.labelHost.append(el);this.labels.set(p.id,el);} }

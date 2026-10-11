@@ -2,7 +2,7 @@ import * as T from 'three';
 import {Parts} from './geometry';
 import {openRail} from './facadeDetails';
 import {gymUpperSlab} from './gymPlatform';
-import {trackGalleryDepth,trackGalleryOffset} from './sportsLayout';
+import {trackGalleryDepth,trackGalleryOffset,poolLightMastPositions} from './sportsLayout';
 import glyphs from '../data/culture-motto.json';
 
 const white='#ebece4',tile='#479aaa',line='#225766';
@@ -95,7 +95,7 @@ export function makePoolDetails(p:Parts,w:number,d:number){
  for(let row=0;row<5;row++)p.box(.85,.36,d*.47,x0-1-row*.86,3.55+row*.4,d*.63,'#486f84');
  openRail(p,[x0-5,5.3,d*.39],[x0-5,5.3,d*.87],white);
  // Slim floodlight masts occupy paving, including the strip between pools.
- for(const x of [x0-6.2,w*.465,x1+2])for(const zz of [d*.37,d*.87]){
+ for(const [x,zz] of poolLightMastPositions(w,d)){
   p.cylinder(.12,10,x,8.375,zz,white,.09,8);
   p.box(1.15,.12,.22,x,13.2,zz,white);
   for(const dx of [-.4,.4])p.box(.42,.38,.3,x+dx,13.48,zz,'#66777a');
